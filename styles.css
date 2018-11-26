@@ -74,7 +74,7 @@ body {
 }
 
 .navButton.navButtonAction {
-  background-color: #007aff;
+  background-color: #ff0600;
   line-height: 40px;
   color: #ffffff;
   border-top-left-radius: 50%;
@@ -82,4 +82,19 @@ body {
   padding-top: 32px;
   margin-top: -85px;
   width: 100px;
+}
+
+.navButton.navButtonAction.unlocked {
+  background-color: #007aff;
+}
+
+.content {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin-top: 66px;
+  max-height: calc(100vh - 66px - 66px);
+  height: 800px;
+  overflow-y: auto;
 }
