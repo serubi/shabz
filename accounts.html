@@ -4,22 +4,31 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#007aff">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
   <title>SHABZ Smart Lock</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-signin-client_id" content="905484329544-kusro715md9u17io64laq82a0hn4399n.apps.googleusercontent.com">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU"
     crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" type="text/css" media="screen" href="styles.css" />
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
 
 <body>
 
   <header class="headerMain">
-    <a class="navButton left" href="#"><span>Log out</span></a>
+    <a class="navButton left active" href="#" onclick="signOut();"><span>Log out</span></a>
     <a class="navButton middle" href="./index.html">
       <h1>SHABZ</h1>
     </a>
-    <a class="navButton right small" href="#"><i class="fas fa-ellipsis-v"></i></a>
+    <a class="navButton right small active" href="#"><i class="fas fa-ellipsis-v"></i></a>
   </header>
 
   <div class="content">
@@ -29,7 +38,7 @@
   <nav class="navMain">
     <a class="navButton" href="#"><i class="fas fa-history"></i></a>
     <a class="navButton navButtonAction middle" id="lockControlButton" href="#"><i class="fas fa-lock"></i></a>
-    <a class="navButton right" href="./accounts.html"><i class="fas fa-users"></i></a>
+    <a class="navButton right active" href="./accounts.html"><i class="fas fa-users"></i></a>
   </nav>
 
   <script src="script.js"></script>

@@ -18,31 +18,34 @@
     crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" type="text/css" media="screen" href="styles.css" />
-
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
 
 <body>
 
-  <header class="headerMain">
-    <a class="navButton left active" href="#" onclick="signOut();"><span>Log out</span></a>
-    <a class="navButton middle" href="./index.html">
+  <!-- <header class="headerMain">
+    <a class="navButton middle" href="#">
       <h1>SHABZ</h1>
     </a>
-    <a class="navButton right small active" href="#"><i class="fas fa-ellipsis-v"></i></a>
-  </header>
+  </header> -->
 
   <div class="content">
-    <div id="lockStatus" data-status="locked">
+    <div class="centered">
+      <div class="introText">
+        <img class="appIcon" src="apple-touch-icon.png">
+        <h1>Shabz</h1>
+        <p>Velkommen til Shabz Smart Lock.</p>
+        <p>Har du fået en invitation, kan du logge ind med Google med det samme.</p>
+        <p>Alternativt kan du opsætte en ny lås.</p>
+      </div>
+      <div class="g-signin2" style="display: none;" id="googleSignin" data-onsuccess="onSignIn"></div>
+      <div class="bottom middle">
+        <a class="btnPrimary" href="#" onclick="initLogin();"><i class="fab fa-google"></i><span>Log ind med Google</span></a>
+        <a class="textLink" href="#">Opsæt ny lås</a>
+      </div>
     </div>
   </div>
 
-  <nav class="navMain">
-    <a class="navButton" href="#"><i class="fas fa-history"></i></a>
-    <a class="navButton navButtonAction middle" id="lockControlButton" href="#"><i class="fas fa-lock"></i></a>
-    <a class="navButton right" href="./accounts.html"><i class="fas fa-users"></i></a>
-  </nav>
-
-  <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
   <script src="script.js"></script>
 
 </body>
