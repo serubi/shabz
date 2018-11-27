@@ -7,6 +7,7 @@ body {
   height: 100%;
   font-family: 'Montserrat', sans-serif;
   overflow: hidden;
+  background-color: #ffffff;
 }
 
 .headerMain {
@@ -97,4 +98,33 @@ body {
   max-height: calc(100vh - 66px - 66px);
   height: 800px;
   overflow-y: auto;
+}
+
+#lockStatus {
+  display: block;
+  position: absolute;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  padding: 36px;
+  margin-top: 100px;
+  height: 200px;
+  width: 200px;
+  background-repeat: no-repeat;
+  background-size: 90%;
+  background-position: bottom -2px center;
+  border-top: 1px solid #e7e7e7;
+  border-right: 1px solid #e7e7e7;
+  border-left: 1px solid #e7e7e7;
+  border-radius: 50%;
+  box-shadow: 0 32px 30px -12.125px rgba(0,0,0,0.1);
+  background-color: #fafafa;
+}
+
+#lockStatus[data-status='locked'] {
+  background-image: url('assets/svg/locked.svg');
+}
+
+#lockStatus[data-status='unlocked'] {
+  background-image: url('assets/svg/unlocked.svg');
 }
