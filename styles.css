@@ -8,6 +8,7 @@ body {
   font-family: 'Montserrat', sans-serif;
   overflow: hidden;
   background-color: #ffffff;
+  letter-spacing: 0;
 }
 
 .headerMain {
@@ -34,6 +35,7 @@ body {
   position: absolute;
   bottom: 0;
   border-top: 1px solid #e7e7e7;
+  background-color: #ffffff;
 }
 
 .navButton {
