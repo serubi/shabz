@@ -255,6 +255,7 @@ body {
 .userInfo #userName {
   font-size: 28px;
   font-weight: 600;
+  display: block;
 }
 
 .userInfo #userEmail {
