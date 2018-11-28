@@ -1,12 +1,12 @@
 html, body {
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 body {
   height: 100%;
   font-family: 'Montserrat', sans-serif;
-  overflow: hidden;
   background-color: #ffffff;
   letter-spacing: 0;
 }
