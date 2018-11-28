@@ -211,6 +211,8 @@ body {
   border-bottom: 1px solid #e7e7e7;
   display: block;
   padding: 22px 12px;
+  color: #111111;
+  text-decoration: none;
 }
 
 .listButtons .listButton a i:first-of-type {

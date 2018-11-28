@@ -57,11 +57,6 @@ function setCookie(cookieName, cookieValue, expiryDays) {
 
 function onSignIn(googleUser) {
   var profile = googleUser.getBasicProfile();
-  // console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-  // console.log('Name: ' + profile.getName());
-  // console.log('Image URL: ' + profile.getImageUrl());
-  // console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-  //console.log(profile);
   if(profile.getEmail() != null)
     window.location.href = "./index.html";
 }
@@ -69,7 +64,18 @@ function onSignIn(googleUser) {
 function signOut() {
   var auth2 = gapi.auth2.getAuthInstance();
   auth2.signOut().then(function () {
+    // Notify console
     console.log('User signed out.');
+
+    // Remove lockStatus cookie
+    setCookie("lockStatus", "removed", -1);
+
+    // Remove user info cookies
+    setCookie("googleProfilePicture", "removed", -1);
+    setCookie("googleUserName", "removed", -1);
+    setCookie("userName", "removed", -1);
+
+    // Redirect to login page
     window.location.href = "./login.html";
   });
 }
@@ -89,7 +95,10 @@ function onLoad() {
 
       var profilePicture = getCookie("googleProfilePicture");
       if (!!profilePicture) {
-        document.querySelector(".profilePicture").setAttribute("style", 'background-image: url(' + profilePicture + ');');        
+        if (profilePicture != gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl()) {
+          document.querySelector(".profilePicture").setAttribute("style", 'background-image: url(' + gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl() + ');');
+          setCookie("googleProfilePicture", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl(), 1);
+        }      
       } else {
         document.querySelector(".profilePicture").setAttribute("style", 'background-image: url(' + gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl() + ');');
         setCookie("googleProfilePicture", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl(), 1);
@@ -97,7 +106,10 @@ function onLoad() {
 
       var userName = getCookie("googleUserName");
       if (!!userName) {
-        document.getElementById("userName").innerText = userName;
+        if (userName != gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName()) {
+          document.getElementById("userName").innerText = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName();
+          setCookie("googleUserName", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName(), 1);
+        }
       } else {
         document.getElementById("userName").innerText = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName();
         setCookie("googleUserName", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName(), 1);
@@ -105,7 +117,10 @@ function onLoad() {
 
       var userEmail = getCookie("googleEmail");
       if (!!userEmail) {
-        document.getElementById("userEmail").innerText = userEmail;
+        if (userEmail != gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail()) {
+          document.getElementById("userEmail").innerText = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail();
+          setCookie("googleEmail", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail(), 1);
+        }
       } else {
         document.getElementById("userEmail").innerText = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail();
         setCookie("googleEmail", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail(), 1);
@@ -116,6 +131,28 @@ function onLoad() {
   });
 }
 
-function initLogin() {
-  document.getElementById("googleSignin").querySelector(".abcRioButtonContentWrapper").click();
+function loadUserInfoFromCookies() {
+  var profilePicture = getCookie("googleProfilePicture");
+  var profilePictureElement = document.querySelector(".profilePicture");
+  if (!!profilePicture && !!profilePictureElement) {
+    profilePictureElement.setAttribute("style", 'background-image: url(' + profilePicture + ');');
+  }
+
+  var userName = getCookie("googleUserName");
+  var userNameElement = document.getElementById("userName");
+  if (!!userName && !!userNameElement) {
+    userNameElement.innerText = userName;
+  }
+
+  var userEmail = getCookie("googleEmail");
+  var userEmailElemenet = document.getElementById("userEmail");
+  if (!!userEmail && !!userEmailElemenet) {
+    userEmailElemenet.innerText = userEmail;
+  }
 }
+
+// on ready
+document.addEventListener('DOMContentLoaded', function () {
+  // load user info
+  loadUserInfoFromCookies();
+}, false);
