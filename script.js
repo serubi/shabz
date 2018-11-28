@@ -111,6 +111,9 @@ function onLoad() {
         setCookie("googleEmail", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail(), 1);
       }
 
+      // test
+      setTimeout(function () { window.scrollTo(0, 1) }, 100);
+
       //console.log(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail());
     });
   });
