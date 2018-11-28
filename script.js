@@ -76,15 +76,41 @@ function signOut() {
 
 function isSignedIn() {
   var auth2 = gapi.auth2.getAuthInstance();
-  console.log(auth2.isSignedIn.get());
+  return auth2.isSignedIn.get();
 }
 
 function onLoad() {
   gapi.load('auth2', function () {
     auth2 = gapi.auth2.init().then(() => {
-      if(!gapi.auth2.getAuthInstance().isSignedIn.get())
+      if(!isSignedIn())
         window.location.href = "./login.html";
-      console.log("logged in: " + gapi.auth2.getAuthInstance().isSignedIn.get());
+
+      console.log("logged in: " + isSignedIn());
+
+      var profilePicture = getCookie("googleProfilePicture");
+      if (!!profilePicture) {
+        document.querySelector(".profilePicture").setAttribute("style", 'background-image: url(' + profilePicture + ');');        
+      } else {
+        document.querySelector(".profilePicture").setAttribute("style", 'background-image: url(' + gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl() + ');');
+        setCookie("googleProfilePicture", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getImageUrl(), 1);
+      }
+
+      var userName = getCookie("googleUserName");
+      if (!!userName) {
+        document.getElementById("userName").innerText = userName;
+      } else {
+        document.getElementById("userName").innerText = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName();
+        setCookie("googleUserName", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName(), 1);
+      }
+
+      var userEmail = getCookie("googleEmail");
+      if (!!userEmail) {
+        document.getElementById("userEmail").innerText = userEmail;
+      } else {
+        document.getElementById("userEmail").innerText = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail();
+        setCookie("googleEmail", gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail(), 1);
+      }
+
       //console.log(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail());
     });
   });

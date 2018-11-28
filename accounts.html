@@ -18,7 +18,6 @@
     crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" type="text/css" media="screen" href="styles.css" />
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
 
 <body>
@@ -32,7 +31,22 @@
   </header>
 
   <div class="content">
-    <span>test</span>
+    <div class="profilePicture centered"></div>
+    <div class="userInfo centered">
+      <span id="userName"></span>
+      <span id="userEmail" class="small"></span>
+    </div>
+
+    <ul class="listButtons">
+      <li class="listButton"><a><i class="fas fa-user-lock"></i><span>Manage locks</span><i class="fas fa-chevron-right right"></i></a></li>
+    </ul>
+
+    <div class="spacing"></div>
+
+    <ul class="listButtons">
+      <li class="listButton"><a><i class="fas fa-user-plus"></i><span>Add account</span><i class="fas fa-chevron-right right"></i></a></li>
+      <li class="listButton"><a><i class="fas fa-users-cog"></i><span>Manage accounts</span><i class="fas fa-chevron-right right"></i></a></li>
+    </ul>
   </div>
 
   <nav class="navMain">
@@ -41,6 +55,7 @@
     <a class="navButton right active" href="./accounts.html"><i class="fas fa-users"></i></a>
   </nav>
 
+  <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
   <script src="script.js"></script>
 
 </body>
