@@ -32,12 +32,22 @@
   </header>
 
   <div class="content">
-    <div id="lockStatus" data-status="locked">
+    <div class="log">
+      <span class="SearchIcon"><i class="fas fa-search"></i></span> <input type="search" placeholder="Search" id="LogSearch"
+        (change)="GetSearchedLogs()">
+      <ul id="log">
+        <!-- <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p class="locked">Locked</p></li>
+              <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p>Unlocked</p></li>
+              <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p>Unlocked</p></li>
+              <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p class="locked">Locked</p></li> -->
+      </ul>
     </div>
+
+    <span id="ClearLogBtn"><i class="fas fa-trash"></i></span>
   </div>
 
   <nav class="navMain">
-    <a class="navButton" href="./logs.html"><i class="fas fa-history"></i></a>
+    <a class="navButton active" href="./logs.html"><i class="fas fa-history"></i></a>
     <a class="navButton navButtonAction middle" id="lockControlButton" href="#"><i class="fas fa-lock"></i></a>
     <a class="navButton right" href="./accounts.html"><i class="fas fa-users"></i></a>
   </nav>

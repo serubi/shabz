@@ -161,11 +161,12 @@ body {
 }
 
 #lockStatus[data-status='locked'] {
-  background-image: url('assets/svg/locked.svg');
+  background-image: url('../../assets/svg/locked.svg');
 }
 
 #lockStatus[data-status='unlocked'] {
-  background-image: url('assets/svg/unlocked.svg');
+  background-image: url('../../assets/svg/unlocked.svg');
+  color: red;
 }
 
 .btnPrimary {
@@ -271,3 +272,167 @@ body {
   display: block;
   height: 50px;
 }
+  
+  /*Menu*/
+  
+  #menu{
+    background-color: rgb(245, 245, 245);
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.12);
+    right: 24px;
+      top: 60px;
+    position: absolute;
+    z-index: 10;
+    display: none;
+    width:50%;
+    max-width: 170px;
+  }
+  
+  #menu ul{
+    margin: 0;
+    padding:0; 
+  
+  }
+  
+  #menu ul li{
+    list-style: none;
+  }
+  
+  #menu ul li a{
+    text-decoration: none;
+    font-weight: 700;
+    color: #333;
+    display: flex;
+    padding: 12px 85px 12px 12px;
+      font-size: 16px;
+      text-align: right;
+  }
+  
+  /*MENU*/
+  
+  /*Log*/
+  
+.SearchIcon{
+  position: absolute;
+  color: rgba(0,0,0,0.3);
+  top: 31px;
+  left: 30px;
+  font-size: 16px;
+}
+
+.log input[type=search]{
+  border: none;
+  outline: none;
+  width: 89%;
+  margin: 20px;
+  font-size: 14px;
+  padding: 12px 12px 12px 31px;
+  color: #333;
+  border-bottom: 2px solid #eee;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  transition: .2s all linear;
+}
+
+// .log input[type=search]:focus{
+//   border-bottom: 2px solid #007aff;
+// }
+
+  #log{
+    position: relative;
+  }
+  
+  .log ul{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    transform: rotate(180deg);
+  }
+  
+  .log ul li{
+    border-bottom: 1px solid #eee;
+    padding:3px 15px; 
+    font-size: 14px;
+    transition: .05s all linear;
+    transform: rotate(-180deg);
+    position: relative;
+  }
+  
+  .slideUl{
+    top: -43px;
+  }
+  
+  .fadeLi{
+    opacity: 0;
+  }
+  
+  .fadeClearUl{
+    opacity: 1;
+  }
+
+  .slideUl{animation:slideUl .5s ease forwards;}
+  @keyframes slideUl{
+    from {top: -43px}
+    to {top:0;}  
+  }
+  
+  .fadeLi{animation: fadeLi .4s ease-in forwards;}
+  @keyframes fadeLi{
+    from {opacity: 0}
+    to {opacity: 1;}  
+  }
+  
+  .fadeClearUl{animation: fadeUl .5s ease-out forwards;}
+  @keyframes fadeUl{
+    from {opacity: 1}
+    to {opacity: 0;}  
+  }
+  
+  .log ul li:hover{
+    background-color:rgb(248, 248, 248);
+  }
+  
+  .log ul li span{
+    float:right;
+    font-weight: 700;
+    position: relative;
+    top: 9px;
+  }
+  
+  .log ul li p{
+    margin: 0;
+    color: #007aff;
+    font-weight: 700;
+  }
+  
+  .locked{
+    color:#ff0600 !important;
+  }
+  
+#ClearLogBtn{
+  position: fixed;
+  right: 30px;
+  bottom: 90px;
+  width: 70px;
+  height: 70px;
+  background-color: rgb(248, 248, 248);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.03), 0 3px 3px rgba(0,0,0,0.06);
+  border-radius: 999px;
+  text-align: center;
+}
+
+#ClearLogBtn:hover{
+  background-color: #eee;
+}
+
+#ClearLogBtn i{
+  color: #ff0600;
+  opacity: 0.8;
+  position: relative;
+  font-size: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  right: 0;
+}
+
+  /*Log*/

@@ -1,0 +1,11 @@
+/node_modules
+/dist
+.DS_Store
+*.log
+.idea
+.vscode
+.eslintcache
+package-lock.json
+assets/styles.css
+assets/script.js.map
+assets/script.js
