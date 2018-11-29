@@ -33,8 +33,10 @@
 
   <div class="content">
     <div class="log">
-      <span class="SearchIcon"><i class="fas fa-search"></i></span> <input type="search" placeholder="Search" id="LogSearch"
-        (change)="GetSearchedLogs()">
+      <div class="inputField withIcon">
+        <i class="fas fa-search"></i>
+        <input type="search" placeholder="Search" id="LogSearch" (change)="GetSearchedLogs()">
+      </div>
       <ul id="log">
         <!-- <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p class="locked">Locked</p></li>
               <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p>Unlocked</p></li>
