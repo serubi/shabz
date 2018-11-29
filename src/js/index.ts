@@ -1,16 +1,21 @@
 import axios, {
-    AxiosResponse,
-    AxiosError
+  AxiosResponse,
+  AxiosError
 } from "../../node_modules/axios/index";
 
 interface ILog {
-    id: number,
-    name: string,
-    date: string,
-    status: String
+  id: number,
+  userId: number,
+  date: string,
+  status: String
 }
 
-const uri: string = "https://shabzsmartlock.azurewebsites.net/api/log";
+interface IUser {
+  id: number,
+  name: string
+}
+
+const uri: string = "https://shabzsmartlock.azurewebsites.net/api/";
 //const uri: string = "https://localhost:44379/api/log";
 
 
@@ -20,138 +25,159 @@ let clearLogBtn: HTMLButtonElement = <HTMLButtonElement>document.getElementById(
 let signOutBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById("signOutBtn");
 
 function GetDate(): string {
-    let today = new Date();
-    let year = today.getFullYear();
-    let month = today.getMonth() + 1;
-    let date = today.getDate();
-    let hour = today.getHours();
-    let minute = today.getMinutes();
-    if (hour < 10) {
-        hour = +'0' + hour;
-    }
-
-    if (date < 10) {
-        date = +'0' + date;
-    }
-
-    if (month < 10) {
-        month = +'0' + month;
-    }
-    if (minute < 10) {
-        minute = +'0' + minute;
-    }
-    return date + "-" + month + "-" + year + " " + hour + ":" + minute;
+  let today = new Date();
+  let year = today.getFullYear();
+  let month = today.getMonth() + 1;
+  let date = today.getDate();
+  let hour = today.getHours();
+  let minute = today.getMinutes();
+  if (hour < 10) {
+    hour = +'0' + hour;
+  }
+  if (date < 10) {
+    date = +'0' + date;
+  }
+  if (month < 10) {
+    month = +'0' + month;
+  }
+  if (minute < 10) {
+    minute = +'0' + minute;
+  }
+  return date + "-" + month + "-" + year + " " + hour + ":" + minute;
 }
 
 function CreateLog() {
-    let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-    li.innerHTML = getName();
-    let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-    let todayOutput: string = <string>"";
+  let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+  li.innerHTML = getName();
+  let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+  let todayOutput: string = <string>"";
 
-    todayOutput = GetDate();
-    span.innerHTML = todayOutput;
-    li.appendChild(span);
-    let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-    if (lockButton.classList.contains("unlocked")) {
-        p.innerHTML = "Locked";
-        p.classList.add("locked");
-    }
-    else {
-        p.innerHTML = "Unlocked";
-    }
-    li.appendChild(p);
-    logOutput.appendChild(li);
-    logOutput.className = "slideUl";
-    li.className = "fadeLi";
-    window.setTimeout(function () {
-        logOutput.className = "";
-    }, 500);
+  todayOutput = GetDate();
+  span.innerHTML = todayOutput;
+  li.appendChild(span);
+  let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+  if (lockButton.classList.contains("unlocked")) {
+    p.innerHTML = "Locked";
+    p.classList.add("locked");
+  }
+  else {
+    p.innerHTML = "Unlocked";
+  }
+  li.appendChild(p);
+  logOutput.appendChild(li);
+  logOutput.className = "slideUl";
+  li.className = "fadeLi";
+  window.setTimeout(function () {
+    logOutput.className = "";
+  }, 500);
+}
+
+// async function GetUser(id: number): Promise<IUser> {
+//   return axios.get<Promise<IUser>>(uri + "user/" + id).then(function (response: AxiosResponse<Promise<IUser>>) {
+//      return response.data;
+//   })
+//   .catch(function (error: AxiosError): void {
+
+//   })
+  
+// }
+
+let userName : string = "";
+
+async function GetUser(id: number) {
+  try {
+   return await axios.get<IUser>(uri + "user/" + id).then(function (response: AxiosResponse<IUser>) {
+      return response.data;
+    })
+  } catch (error) {
+    
+  }
 }
 
 function GetAllLogs(): void {
-    axios.get<ILog[]>(uri)
-        .then(function (response: AxiosResponse<ILog[]>): void {
-            response.data.forEach((log: ILog) => {
-                let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-                li.innerHTML = log.name;
-                let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-                span.innerHTML = log.date;
-                li.appendChild(span);
-                let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-                p.innerHTML = log.status.toString();
-                if (p.innerHTML == "Locked") {
-                    p.classList.add("locked")
-                }
-                li.appendChild(p);
-                logOutput.appendChild(li);
-                logOutput.className = "slideUl";
-                li.className = "fadeLi";
-                window.setTimeout(function () {
-                    logOutput.className = "";
-                }, 500);
-            });
-        })
-        .catch(function (error: AxiosError): void {
-
+  axios.get<ILog[]>(uri + "log")
+    .then(function (response: AxiosResponse<ILog[]>): void {
+      response.data.forEach((log: ILog) => {
+        let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+        GetUser(log.userId).then(function(result : IUser){
+          li.innerHTML = result.name;
+          let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+          span.innerHTML = log.date;
+          li.appendChild(span);
+          let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+          p.innerHTML = log.status.toString();
+          if (p.innerHTML == "Locked") {
+            p.classList.add("locked")
+          }
+          li.appendChild(p);
+          logOutput.appendChild(li);
+          logOutput.className = "slideUl";
+          li.className = "fadeLi";
+          window.setTimeout(function () {
+            logOutput.className = "";
+          }, 500);
         });
+      });
+    })
+    .catch(function (error: AxiosError): void {
+      console.log(error.message)
+    });
 }
 
 GetAllLogs();
 
-if (!!clearLogBtn){
+if (!!clearLogBtn) {
   clearLogBtn.addEventListener("click", function () {
-      if (confirm("Er du sikker på at du vil slette hele loggen?")) {
-          logOutput.classList.add("fadeClearUl");
-          window.setTimeout(function () {
-              axios.delete(uri)
-                  .then(function (response: AxiosResponse<ILog>): void {
-                      logOutput.innerHTML = "";
-                  })
-                  .catch(function (error: AxiosError): void {
+    if (confirm("Er du sikker på at du vil slette hele loggen?")) {
+      logOutput.classList.add("fadeClearUl");
+      window.setTimeout(function () {
+        axios.delete(uri)
+          .then(function (response: AxiosResponse<ILog>): void {
+            logOutput.innerHTML = "";
+          })
+          .catch(function (error: AxiosError): void {
 
-                  });
-          }, 500);
-      }
+          });
+      }, 500);
+    }
   });
 }
 
 function GetSearchedLogs(input: string): void {
-    logOutput.innerHTML = "";
-    axios.get<ILog[]>(uri)
-        .then(function (response: AxiosResponse<ILog[]>): void {
-            response.data.forEach((log: ILog) => {
-                if (log.name == input) {
-                   logOutput.innerHTML = "";
-                }
-                else
-                {
-                    let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-                    li.innerHTML = log.name;
-                    let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-                    span.innerHTML = log.date;
-                    li.appendChild(span);
-                    let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-                    p.innerHTML = log.status.toString();
-                    if (p.innerHTML == "Locked") {
-                        p.classList.add("locked")
-                    }
-                    li.appendChild(p);
-                    logOutput.appendChild(li);
-                    logOutput.className = "slideUl";
-                    li.className = "fadeLi";
-                    window.setTimeout(function () {
-                        logOutput.className = "";
-                    }, 500);
-                }
-                if(input.length == 0){
-                    GetAllLogs();
-                }
-            });
-        })
-        .catch(function (error: AxiosError): void {
+  // logOutput.innerHTML = "";
+  // axios.get<ILog[]>(uri)
+  //   .then(function (response: AxiosResponse<ILog[]>): void {
+  //     response.data.forEach((log: ILog) => {
+  //       if (GetUser(log.userId).name == input) {
+  //         logOutput.innerHTML = "";
+  //       }
+  //       else {
+  //         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+  //         li.innerHTML = GetUser(log.userId).name;
+  //         let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+  //         span.innerHTML = log.date;
+  //         li.appendChild(span);
+  //         let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+  //         p.innerHTML = log.status.toString();
+  //         if (p.innerHTML == "Locked") {
+  //           p.classList.add("locked")
+  //         }
+  //         li.appendChild(p);
+  //         logOutput.appendChild(li);
+  //         logOutput.className = "slideUl";
+  //         li.className = "fadeLi";
+  //         window.setTimeout(function () {
+  //           logOutput.className = "";
+  //         }, 500);
+  //       }
+  //       if (input.length == 0) {
+  //         GetAllLogs();
+  //       }
+  //     });
+  //   })
+  //   .catch(function (error: AxiosError): void {
 
-        });
+  //   });
 }
 
 let searchInput: HTMLInputElement = <HTMLInputElement>document.getElementById("LogSearch");
@@ -176,10 +202,10 @@ if (!!lockButton) {
     }
 
     if (lockButton.classList.contains("unlocked")) {
-      axios.post<ILog>(uri, { Name: getName(), Date: GetDate(), Status: "Locked" })
+      axios.post<ILog>(uri + "log", { userId: 1, Date: GetDate(), Status: "Locked" })
     }
     else {
-      axios.post<ILog>(uri, { Name: getName(), Date: GetDate(), Status: "Unlocked" })
+      axios.post<ILog>(uri + "log", { userId: 1, Date: GetDate(), Status: "Unlocked" })
     }
 
     if (lockStatusCookie == "locked") {
@@ -205,7 +231,7 @@ function toggleLockInterface() {
     lockIcon.setAttribute('data-status', lockIcon.getAttribute("data-status") == "locked" ? "unlocked" : "locked");
 }
 
-function getCookie(cookieName : string) {
+function getCookie(cookieName: string) {
   var name = cookieName + "=";
   var ca = document.cookie.split(';');
   for (var i = 0; i < ca.length; i++) {
@@ -221,7 +247,7 @@ function getCookie(cookieName : string) {
 }
 (<any>window).getCookie = getCookie;
 
-function setCookie(cookieName : string, cookieValue : string, expiryDays : number) {
+function setCookie(cookieName: string, cookieValue: string, expiryDays: number) {
   var d = new Date();
   d.setTime(d.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
   var expires = "expires=" + d.toUTCString();
@@ -229,7 +255,7 @@ function setCookie(cookieName : string, cookieValue : string, expiryDays : numbe
 }
 (<any>window).setCookie = setCookie;
 
-function onSignIn(googleUser : any) {
+function onSignIn(googleUser: any) {
   var profile = googleUser.getBasicProfile();
   if (profile.getEmail() != null)
     window.location.href = "./index.html";
@@ -237,7 +263,7 @@ function onSignIn(googleUser : any) {
 (<any>window).onSignIn = onSignIn;
 
 if (!!signOutBtn) {
-  signOutBtn.addEventListener('click', function() {
+  signOutBtn.addEventListener('click', function () {
     signOut();
   });
 }
@@ -267,7 +293,7 @@ function isSignedIn() {
 }
 
 function getName() {
-  let userName:string = getCookie("googleUserName");
+  let userName: string = getCookie("googleUserName");
 
   if (!!userName)
     return userName;
@@ -295,7 +321,7 @@ function getImageUrl() {
 
 function onLoad() {
   gapi.load('auth2', function () {
-    auth2 : gapi.auth2.GoogleAuth = gapi.auth2.init({ client_id:'905484329544-kusro715md9u17io64laq82a0hn4399n.apps.googleusercontent.com'}).then(() => {
+    auth2: gapi.auth2.GoogleAuth = gapi.auth2.init({ client_id: '905484329544-kusro715md9u17io64laq82a0hn4399n.apps.googleusercontent.com' }).then(() => {
 
       if (isSignedIn()) {
         // If user is logged in
@@ -344,7 +370,7 @@ function onLoad() {
 (<any>window).onLoad = onLoad;
 
 function initLogin() {
-  let googleSigninBtnt:HTMLElement = document.getElementById("googleSignin").querySelector(".abcRioButtonContentWrapper") as HTMLElement;
+  let googleSigninBtnt: HTMLElement = document.getElementById("googleSignin").querySelector(".abcRioButtonContentWrapper") as HTMLElement;
   googleSigninBtnt.click();
 }
 (<any>window).initLogin = initLogin;
