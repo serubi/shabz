@@ -23,7 +23,7 @@
 <body>
 
   <header class="headerMain">
-    <a class="navButton left active" href="#" id="signOutBtn"><span>Log out</span></a>
+    <a class="navButton left active icontext" href="./accounts.html"><i class="fas fa-chevron-left"></i><span>Back</span></a>
     <a class="navButton middle" href="./index.html">
       <h1>SHABZ</h1>
     </a>
@@ -31,22 +31,28 @@
   </header>
 
   <div class="content">
-    <div class="profilePicture centered"></div>
-    <div class="userInfo centered">
-      <span id="userName"></span>
-      <span id="userEmail" class="small"></span>
+    <h2>Add account</h2>
+
+    <div class="row">
+      <label for="addAccountEmail">Gmail to invite</label>
+      <div class="inputField withIcon">
+        <i class="fas fa-at"></i>
+        <input type="email" name="addAccountEmail" placeholder="Gmail" spellcheck="false">
+      </div>
     </div>
 
-    <ul class="listButtons">
-      <li class="listButton"><a href="./managelocks.html"><i class="fas fa-user-lock"></i><span>Manage locks</span><i class="fas fa-chevron-right right"></i></a></li>
-    </ul>
+    <div class="row">
+      <label>Select lock(s)</label>
+      <ul class="listButtons listButtonsCheck">
+        <li class="listButton" data-checked="false"><a href="#"><i class="fas fa-lock"></i><span>House (main entrance)</span><i class="far fa-square right"></i></a></li>
+        <li class="listButton" data-checked="false"><a href="#"><i class="fas fa-lock"></i><span>House (back door)</span><i class="far fa-square right"></i></a></li>
+        <li class="listButton" data-checked="false"><a href="#"><i class="fas fa-lock"></i><span>Gun safe</span><i class="far fa-square right"></i></a></li>
+      </ul>
+    </div>
 
-    <div class="spacing"></div>
-
-    <ul class="listButtons">
-      <li class="listButton"><a href="./addaccount.html"><i class="fas fa-user-plus"></i><span>Add account</span><i class="fas fa-chevron-right right"></i></a></li>
-      <li class="listButton"><a href="./manageaccounts.html"><i class="fas fa-users-cog"></i><span>Manage accounts</span><i class="fas fa-chevron-right right"></i></a></li>
-    </ul>
+    <div class="row">
+      <a class="btnPrimary" href="#">Send invite</a>
+    </div>
   </div>
 
   <nav class="navMain">

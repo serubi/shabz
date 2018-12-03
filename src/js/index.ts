@@ -3,17 +3,7 @@ import axios, {
   AxiosError
 } from "../../node_modules/axios/index";
 
-interface ILog {
-  id: number,
-  userId: number,
-  date: string,
-  status: String
-}
-
-interface IUser {
-  id: number,
-  name: string
-}
+import { ILog, IAccount, ILock, IRole, ILockAccount } from "./interfaces";
 
 const uri: string = "https://shabzsmartlock.azurewebsites.net/api/";
 //const uri: string = "https://localhost:44379/api/log";
@@ -24,26 +14,9 @@ let logOutput: HTMLUListElement = <HTMLUListElement>document.getElementById("log
 let clearLogBtn: HTMLButtonElement = <HTMLButtonElement>document.getElementById("ClearLogBtn");
 let signOutBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById("signOutBtn");
 
-function GetDate(): string {
+function getDate(): string {
   let today = new Date();
-  let year = today.getFullYear();
-  let month = today.getMonth() + 1;
-  let date = today.getDate();
-  let hour = today.getHours();
-  let minute = today.getMinutes();
-  if (hour < 10) {
-    hour = +'0' + hour;
-  }
-  if (date < 10) {
-    date = +'0' + date;
-  }
-  if (month < 10) {
-    month = +'0' + month;
-  }
-  if (minute < 10) {
-    minute = +'0' + minute;
-  }
-  return date + "-" + month + "-" + year + " " + hour + ":" + minute;
+  return today.toDateString() + " " + today.toLocaleTimeString('en-GB');
 }
 
 function CreateLog() {
@@ -52,8 +25,7 @@ function CreateLog() {
   let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
   let todayOutput: string = <string>"";
 
-  todayOutput = GetDate();
-  span.innerHTML = todayOutput;
+  span.innerHTML = getDate();
   li.appendChild(span);
   let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
   if (lockButton.classList.contains("unlocked")) {
@@ -86,7 +58,7 @@ let userName : string = "";
 
 async function GetUser(id: number) {
   try {
-   return await axios.get<IUser>(uri + "user/" + id).then(function (response: AxiosResponse<IUser>) {
+   return await axios.get<IAccount>(uri + "account/" + id).then(function (response: AxiosResponse<IAccount>) {
       return response.data;
     })
   } catch (error) {
@@ -99,10 +71,10 @@ function GetAllLogs(): void {
     .then(function (response: AxiosResponse<ILog[]>): void {
       response.data.forEach((log: ILog) => {
         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-        GetUser(log.userId).then(function(result : IUser){
+        GetUser(log.userId).then(function(result : IAccount){
           li.innerHTML = result.name;
           let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-          span.innerHTML = log.date;
+          span.innerHTML = log.date.toString();
           li.appendChild(span);
           let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
           p.innerHTML = log.status.toString();
@@ -202,10 +174,10 @@ if (!!lockButton) {
     }
 
     if (lockButton.classList.contains("unlocked")) {
-      axios.post<ILog>(uri + "log", { userId: 1, Date: GetDate(), Status: "Locked" })
+      axios.post<ILog>(uri + "log", { userId: 1, date: getDate(), status: true })
     }
     else {
-      axios.post<ILog>(uri + "log", { userId: 1, Date: GetDate(), Status: "Unlocked" })
+      axios.post<ILog>(uri + "log", { userId: 1, date: getDate(), status: false })
     }
 
     if (lockStatusCookie == "locked") {
@@ -400,3 +372,26 @@ document.addEventListener('DOMContentLoaded', function () {
   // load user info
   loadUserInfoFromCookies();
 }, false);
+
+if (!!document.querySelector(".listButtonsCheck")) {
+  let checkButtonLists: NodeListOf<HTMLUListElement> = <NodeListOf<HTMLUListElement>>document.querySelectorAll(".listButtonsCheck");
+
+  checkButtonLists.forEach((ul) => {
+    let checkButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>document.querySelectorAll(".listButton");
+
+    checkButtons.forEach((button) => {
+      button.addEventListener('click', function() {
+        let icon = this.querySelector('a i.right');
+        //console.log(icon.classList[0]); // far
+        //console.log(icon.classList[1]); // fa-square
+        if(button.getAttribute("data-checked") == "false") {
+          icon.setAttribute("class", "fas fa-check-square " + icon.classList[2]);
+          button.setAttribute("data-checked", "true");
+        } else {
+          icon.setAttribute("class", "far fa-square " + icon.classList[2]);
+          button.setAttribute("data-checked", "false");
+        }
+      });
+    });
+  });
+}

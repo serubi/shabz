@@ -337,10 +337,21 @@ body {
   background-color: #f0f0f0;
   border-radius: 10px;
   transition: .2s all linear;
+  box-sizing: border-box;
 }
 
 .inputField.withIcon input {
   padding-left: 36px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  padding-left: 8px;
+}
+
+.row {
+  margin-bottom: 38px;
 }
 
   #log{
