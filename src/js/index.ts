@@ -44,16 +44,6 @@ function CreateLog() {
   }, 500);
 }
 
-// async function GetUser(id: number): Promise<IUser> {
-//   return axios.get<Promise<IUser>>(uri + "user/" + id).then(function (response: AxiosResponse<Promise<IUser>>) {
-//      return response.data;
-//   })
-//   .catch(function (error: AxiosError): void {
-
-//   })
-  
-// }
-
 let userName : string = "";
 
 async function GetUser(id: number) {
@@ -71,7 +61,7 @@ function GetAllLogs(): void {
     .then(function (response: AxiosResponse<ILog[]>): void {
       response.data.forEach((log: ILog) => {
         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-        GetUser(log.userId).then(function(result : IAccount){
+        GetUser(log.accountId).then(function(result : IAccount){
           li.innerHTML = result.name;
           let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
           span.innerHTML = log.date.toString();
@@ -116,47 +106,43 @@ if (!!clearLogBtn) {
 }
 
 function GetSearchedLogs(input: string): void {
-  // logOutput.innerHTML = "";
-  // axios.get<ILog[]>(uri)
-  //   .then(function (response: AxiosResponse<ILog[]>): void {
-  //     response.data.forEach((log: ILog) => {
-  //       if (GetUser(log.userId).name == input) {
-  //         logOutput.innerHTML = "";
-  //       }
-  //       else {
-  //         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-  //         li.innerHTML = GetUser(log.userId).name;
-  //         let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-  //         span.innerHTML = log.date;
-  //         li.appendChild(span);
-  //         let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-  //         p.innerHTML = log.status.toString();
-  //         if (p.innerHTML == "Locked") {
-  //           p.classList.add("locked")
-  //         }
-  //         li.appendChild(p);
-  //         logOutput.appendChild(li);
-  //         logOutput.className = "slideUl";
-  //         li.className = "fadeLi";
-  //         window.setTimeout(function () {
-  //           logOutput.className = "";
-  //         }, 500);
-  //       }
-  //       if (input.length == 0) {
-  //         GetAllLogs();
-  //       }
-  //     });
-  //   })
-  //   .catch(function (error: AxiosError): void {
-
-  //   });
+  logOutput.innerHTML = "";
+  axios.get<ILog[]>(uri + "log")
+    .then(function (response: AxiosResponse<ILog[]>): void {
+      response.data.forEach((log: ILog) => { 
+        let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+        GetUser(log.accountId).then(function(result : IAccount){
+          if(searchInput.value == result.name){
+            li.innerHTML = result.name;
+            let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+            span.innerHTML = log.date.toString();
+            li.appendChild(span);
+            let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+            p.innerHTML = log.status.toString();
+            if (p.innerHTML == "Locked") {
+              p.classList.add("locked")
+            }
+            li.appendChild(p);
+            logOutput.appendChild(li);  
+            logOutput.className = "slideUl";
+            li.className = "fadeLi";
+            window.setTimeout(function () {
+              logOutput.className = "";
+            }, 500);
+          }
+        });
+      });
+    })
+    .catch(function (error: AxiosError): void {
+      GetAllLogs();
+    });
 }
 
 let searchInput: HTMLInputElement = <HTMLInputElement>document.getElementById("LogSearch");
 
-// searchInput.addEventListener("change", function (e: React.ChangeEvent<HTMLInputElement>) {
-//     GetSearchedLogs(searchInput.value);
-// });
+searchInput.addEventListener("textchanged", function (e) {
+    GetSearchedLogs(searchInput.value);
+});
 
 var lockIcon = document.getElementById("lockStatus");
 var lockStatusCookie = getCookie("lockStatus");

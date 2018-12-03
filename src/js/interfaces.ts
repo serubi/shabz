@@ -15,7 +15,7 @@ export interface ILock {
 
 export interface ILog {
   id: number,
-  userId: number,
+  accountId: number,
   date: Date,
   status: boolean
 }
