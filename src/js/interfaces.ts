@@ -2,7 +2,7 @@ export interface IAccount {
   id: number,
   email: string,
   name: string,
-  primaryLock: number
+  primaryLockId: number
 }
 
 export interface ILock {
@@ -10,13 +10,13 @@ export interface ILock {
   name: string,
   accessCode: string,
   status: boolean,
-  dateRegistered: Date
+  dateRegistered: string
 }
 
 export interface ILog {
   id: number,
   accountId: number,
-  date: Date,
+  date: string,
   status: boolean
 }
 
@@ -29,7 +29,7 @@ export interface IRole {
 
 export interface ILockAccount {
   id: number,
-  userId: number,
+  accountId: number,
   lockId: number,
   roleId: number
 }
