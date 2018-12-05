@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#007aff">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
+  <title>SHABZ Smart Lock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="google-signin-client_id" content="905484329544-kusro715md9u17io64laq82a0hn4399n.apps.googleusercontent.com">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU"
+    crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" media="screen" href="assets/styles.css" />
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+</head>
+
+<body>
+
+  <header class="headerMain">
+    <a class="navButton left active icontext" href="./login.html"><i class="fas fa-chevron-left"></i><span>Tilbage</span></a>
+  </header>
+
+  <div class="content">
+    <div id="view1">
+      <div class="centered">
+        <div class="introText">
+          <img class="appIcon" src="apple-touch-icon.png">
+          <h2>Opsæt ny Shabz Smart Lock</h2>
+          <label for="accessCode">Indtast access code</label>
+          <div class="inputField withIcon allCaps">
+            <i class="fas fa-key"></i>
+            <input type="text" placeholder="" name="accessCode" id="accessCode" maxlength="7">
+          </div>
+        </div>
+        <div class="bottom middle">
+          <a class="btnPrimary" id="verifyLockBtn" href="#"><span>Fortsæt</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="view2" class="hidden">
+      <div class="centered">
+        <div class="introText">
+          <img class="appIcon" src="apple-touch-icon.png">
+          <h2>Hvad skal vi kalde din nye Shabz Smart Lock?</h2>
+          <label for="lockName">Angiv navn</label>
+          <div class="inputField withIcon">
+            <i class="fas fa-font"></i>
+            <input type="text" placeholder="" name="lockName" id="lockName" maxlength="50">
+          </div>
+        </div>
+        <div class="bottom middle">
+          <a class="btnPrimary" id="nameLockBtn" href="#"><span>Fortsæt</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="view3" class="hidden">
+      <div class="centered">
+        <div class="introText">
+          <img class="appIcon" src="apple-touch-icon.png">
+          <h1>Shabz</h1>
+          <p>Din Shabz Smart Lock er næsten klar!</p>
+          <p>For at færdiggøre opsætningen, skal du logge ind med din Google konto</p>
+        </div>
+        <div class="g-signin2" style="display: none;" id="googleSignin" data-onsuccess="onFirstSignIn"></div>
+        <div class="bottom middle">
+          <a class="btnPrimary" href="#" onclick="initLogin();"><i class="fab fa-google"></i><span>Log ind med Google</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/script.js"></script>
+
+</body>
+
+</html>

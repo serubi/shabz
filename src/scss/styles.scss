@@ -272,6 +272,10 @@ body {
   display: block;
   height: 50px;
 }
+
+.hidden {
+  display: none;
+}
   
   /*Menu*/
   
@@ -342,6 +346,10 @@ body {
 
 .inputField.withIcon input {
   padding-left: 36px;
+}
+
+.inputField.allCaps input {
+  text-transform: uppercase;
 }
 
 label {
