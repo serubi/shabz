@@ -250,19 +250,13 @@ function toggleLock() {
     accountPrimaryLock.then((lockResponse) => {
       let editLock = lockResponse;
 
-      if (getLocalLockStatus()) {
-        editLock.status = true;
-        axios.post<ILog>(uri + "log", { accountId: 1, date: getDate(), status: true });
-      }
-      else {
-        editLock.status = false;
-        axios.post<ILog>(uri + "log", { accountId: 1, date: getDate(), status: false });
-      }
+      editLock.status = getLocalLockStatus();
+      axios.post<ILog>(uri + "log", { accountId: accountResponse.id, date: getDate(), status: getLocalLockStatus() });
 
       let updateLock = UpdateLock(editLock);
       updateLock.then((updateLockResponse) => {
         if(updateLockResponse == 200) {
-          // Lock was updated successfully          
+          // Lock was updated successfully
           if (lockStatusCookie == "locked") {
             lockStatusCookie = "unlocked";
             setCookie("lockStatus", "unlocked", 1);
@@ -280,7 +274,7 @@ function toggleLock() {
 }
 (<any>window).toggleLock = toggleLock;
 
-function getLocalLockStatus():Boolean {
+function getLocalLockStatus():boolean {
   if (!!lockButton) {
     if (lockButton.classList.contains("unlocked")) {
       return false;
