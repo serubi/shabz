@@ -388,7 +388,6 @@ function onFirstSignIn(googleUser: any) {
           if (!!existingAccountResponse && existingAccountResponse.id > 0) {
             shouldContinue = true;
             accountId = existingAccountResponse.id;
-            console.log("account id is: " + existingAccountResponse.id);
           } else {
             shouldContinue = false;
           }
@@ -429,6 +428,16 @@ function onFirstSignIn(googleUser: any) {
                     newLockAccountResponse.then((LockAccountResponse) => {
                       if(LockAccountResponse == 200) {
                         // Lock Account was added successfully
+
+                        // Set the lockStatus cookie based on the lock's status in the database
+                        if (lockResponse.status) {
+                          lockStatusCookie = "locked";
+                          setCookie("lockStatus", "locked", 1);
+                        } else {
+                          lockStatusCookie = "unlocked";
+                          setCookie("lockStatus", "unlocked", 1);
+                        }
+                        
                         alert("\"" + lockResponse.name + "\" er nu klar til brug!");
                         window.location.href = "./index.html";
                       }
