@@ -143,8 +143,12 @@ function GetAllLogs(): void {
           li.appendChild(span);
           let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
           p.innerHTML = log.status.toString();
-          if (p.innerHTML == "Locked") {
+          if (p.innerHTML == "true") {
             p.classList.add("locked")
+            p.innerHTML = "Locked";
+          }
+          else{
+            p.innerHTML = "Unlocked";
           }
           li.appendChild(p);
           logOutput.appendChild(li);
