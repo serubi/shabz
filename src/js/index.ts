@@ -81,6 +81,16 @@ async function GetAllRoles() {
   }
 }
 
+async function GetRole(id: number) {
+  try {
+    return await axios.get<IRole>(uri + "role/" + id).then(function (response: AxiosResponse<IRole>) {
+      return response.data;
+    })
+  } catch (error) {
+
+  }
+}
+
 async function AddAccount(account: IAccount) {
   try {
     return await axios.post<IAccount>(uri + "account/", account).then(function (response: AxiosResponse) {
@@ -104,6 +114,26 @@ async function AddLockAccount(lockAccount: ILockAccount) {
 async function GetLock(id: number) {
   try {
     return await axios.get<ILock>(uri + "lock/" + id).then(function (response: AxiosResponse<ILock>) {
+      return response.data;
+    })
+  } catch (error) {
+
+  }
+}
+
+async function GetAllLocks() {
+  try {
+    return await axios.get<Array<ILock>>(uri + "lock/").then(function (response: AxiosResponse<Array<ILock>>) {
+      return response.data;
+    })
+  } catch (error) {
+
+  }
+}
+
+async function GetAllLockAccounts() {
+  try {
+    return await axios.get<Array<ILockAccount>>(uri + "lock_account/").then(function (response: AxiosResponse<Array<ILockAccount>>) {
       return response.data;
     })
   } catch (error) {
@@ -661,4 +691,76 @@ if (!!verifyLockBtn) {
     }
 
   });
+}
+
+let allUserLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocks');
+let allUserLocks: Promise<Array<ILockAccount>> = GetAllLockAccounts();
+if (!!allUserLocksList) {
+  allUserLocks.then((lockAccountResponse) => {
+    let account:Promise<IAccount> = GetAccountFromEmail(getEmail());
+
+    account.then((accountResponse) => {
+      lockAccountResponse.forEach((lockAccount) => {
+        if (lockAccount.accountId == accountResponse.id) {
+          // Account owns Lock Account
+          let lock:Promise<ILock> = GetLock(lockAccount.lockId);
+          lock.then((lockResponse) => {
+            allUserLocksList.innerHTML += '<li class="listButton"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fas fa-chevron-right right"></i></a></li>';
+          });
+        }
+      });
+    });
+  });
+}
+
+let allSharedLockAccountsList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfSharedLocksAccounts');
+if (!!allSharedLockAccountsList) {
+  getLockAccountsSharingSameLocks();
+}
+
+function getLockAccountsSharingSameLocks() {
+  let loggedInAccountLocks: Array<number> = [];
+  let allSharedLockAccounts: Array<ILockAccount> = [];
+  allUserLocks.then((lockAccountResponse) => {
+    let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
+
+    account.then((loggedInAccountResponse) => {
+      lockAccountResponse.forEach((lockAccount) => {
+        if (lockAccount.accountId == loggedInAccountResponse.id) {
+          loggedInAccountLocks.push(lockAccount.lockId);
+        }
+      });
+    }).then(() => {
+      lockAccountResponse.forEach((lockAccount) => {
+        loggedInAccountLocks.forEach((lockId) => {
+          if (lockAccount.lockId == lockId) {
+            allSharedLockAccounts.push(lockAccount);
+          }
+        })
+      });
+    }).then(() => {
+      if (!!allSharedLockAccountsList) {
+        let accountIdHistory:Array<number> = [];
+        allSharedLockAccounts.forEach((lockAccount) => {
+          let shouldContinue:boolean = true;
+          accountIdHistory.forEach((accountId) => {
+            if(lockAccount.accountId == accountId) {
+              shouldContinue = false;
+            }
+          });
+
+          if(shouldContinue) {
+            accountIdHistory.push(lockAccount.accountId);
+            let account: Promise<IAccount> = GetAccount(lockAccount.accountId);
+            let role: Promise<IRole> = GetRole(lockAccount.roleId);
+            account.then((accountResponse) => {
+              role.then((roleResponse) => {
+                allSharedLockAccountsList.innerHTML += '<li class="listButton"><a href="#"><i class="fas fa-' + roleResponse.icon + '"></i><span>' + accountResponse.email + '</span><i class="fas fa-chevron-right right"></i></a></li>';
+              });
+            });
+          }
+        });
+      }
+    })
+  });  
 }
