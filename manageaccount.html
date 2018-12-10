@@ -23,7 +23,7 @@
 <body>
 
   <header class="headerMain">
-    <a class="navButton left active icontext" href="./accounts.html"><i class="fas fa-chevron-left"></i><span>Tilbage</span></a>
+    <a class="navButton left active icontext" href="./manageaccounts.html"><i class="fas fa-chevron-left"></i><span>Tilbage</span></a>
     <a class="navButton middle" href="./index.html">
       <h1>SHABZ</h1>
     </a>
@@ -31,27 +31,18 @@
   </header>
 
   <div class="content">
-    <h2>Tilføj konto</h2>
-
-    <div class="row">
-      <label for="addAccountEmail">Gmail som skal inviteres</label>
-      <div class="inputField withIcon">
-        <i class="fas fa-at"></i>
-        <input type="email" name="addAccountEmail" id="addAccountEmail" placeholder="Gmail" spellcheck="false">
-      </div>
-    </div>
-
+    <h2 id="manageAccountTitle">Administrer konto</h2>
+    
     <div class="row">
       <label>Vælg lås(e)</label>
+
       <ul class="listButtons listButtonsCheck" id="listOfLocksForInvite">
-        <!-- <li class="listButton" data-checked="false" data-lockid="1"><a href="#"><i class="fas fa-lock"></i><span>House (main entrance)</span><i class="far fa-square right"></i></a></li>
-        <li class="listButton" data-checked="false"><a href="#"><i class="fas fa-lock"></i><span>House (back door)</span><i class="far fa-square right"></i></a></li>
-        <li class="listButton" data-checked="false"><a href="#"><i class="fas fa-lock"></i><span>Gun safe</span><i class="far fa-square right"></i></a></li> -->
+      
       </ul>
     </div>
 
     <div class="row">
-      <a class="btnPrimary" id="sendInviteBtn" href="#">Send invitation</a>
+      <a class="btnPrimary" id="updateAccountLocks" href="#">Opdatér bruger</a>
     </div>
   </div>
 
