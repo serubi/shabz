@@ -101,6 +101,16 @@ async function AddAccount(account: IAccount) {
   }
 }
 
+async function UpdateAccount(account: IAccount) {
+  try {
+    return await axios.put<IAccount>(uri + "account/" + account.id, account).then(function (response: AxiosResponse) {
+      return response.status;
+    })
+  } catch (error) {
+
+  }
+}
+
 async function AddLockAccount(lockAccount: ILockAccount) {
   try {
     return await axios.post<ILockAccount>(uri + "lock_account/", lockAccount).then(function (response: AxiosResponse) {
@@ -687,11 +697,12 @@ if (!!verifyLockBtn) {
 const urlParams = new URLSearchParams(window.location.search);
 const accountIdParam = urlParams.get('id');
 
+let primaryLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocksForPrimary');
 let allUserLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocks');
 let inviteLocks: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocksForInvite');
 let manageAccountTitle: HTMLHeadingElement = <HTMLHeadingElement>document.getElementById('manageAccountTitle');
 let allUserLocks: Promise<Array<ILockAccount>> = GetAllLockAccounts();
-if (!!allUserLocksList || !!inviteLocks) {
+if (!!allUserLocksList || !!inviteLocks || !!primaryLocksList) {
   allUserLocks.then((lockAccountResponse) => {
     let account:Promise<IAccount> = GetAccountFromEmail(getEmail());
 
@@ -703,6 +714,12 @@ if (!!allUserLocksList || !!inviteLocks) {
           lock.then((lockResponse) => {
             if(!!allUserLocksList)
               allUserLocksList.innerHTML += '<li class="listButton"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fas fa-chevron-right right"></i></a></li>';
+
+            if (!!primaryLocksList) {
+              let isPrimary:boolean = lockResponse.id == accountResponse.primaryLockId;
+              primaryLocksList.innerHTML += '<li class="listButton" data-checked="' + isPrimary + '" data-lockid="' + lockResponse.id + '"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fa' + (isPrimary ? "s" : "r") + ' fa-' + (isPrimary ? "check-" : "") + 'square right"></i></a></li>';
+              radioListAddEventListener();
+            }
 
             if (!!inviteLocks) {
               if (!!manageAccountTitle) {
@@ -878,7 +895,7 @@ function checkListAddEventListener() {
     let checkButtonLists: NodeListOf<HTMLUListElement> = <NodeListOf<HTMLUListElement>>document.querySelectorAll(".listButtonsCheck");
 
     checkButtonLists.forEach((ul) => {
-      let checkButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>document.querySelectorAll(".listButton");
+      let checkButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>ul.querySelectorAll(".listButton");
 
       checkButtons.forEach((button) => {
         button.addEventListener('click', function () {
@@ -892,6 +909,80 @@ function checkListAddEventListener() {
             icon.setAttribute("class", "far fa-square " + icon.classList[2]);
             button.setAttribute("data-checked", "false");
           }
+        });
+      });
+    });
+  }
+}
+
+function radioListAddEventListener() {
+  if (!!document.querySelector(".listButtonsRadio")) {
+    let radioButtonLists: NodeListOf<HTMLUListElement> = <NodeListOf<HTMLUListElement>>document.querySelectorAll(".listButtonsRadio");
+
+    radioButtonLists.forEach((ul) => {
+      let radioButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>ul.querySelectorAll(".listButton");
+
+      radioButtons.forEach((button) => {
+        button.addEventListener('click', function () {
+
+          if(button.parentElement.getAttribute('id') == "listOfLocksForPrimary") {
+            primaryLocksList.childNodes.forEach((listItem: HTMLLIElement) => {
+              if (!!listItem.outerHTML) {
+                let lockId: number = +listItem.dataset.lockid;
+                let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
+                let getAllLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
+                account.then((accountResponse) => {
+                  if (listItem.dataset.checked.toLowerCase() == "true") {
+                    // if lock is checked
+                    //let shouldAdd: boolean = true;
+
+                    getAllLockAccounts.then((allLockAccountsArray) => {
+                      allLockAccountsArray.forEach((lockAccount) => {
+                        if (lockAccount.lockId == lockId && lockAccount.accountId == accountResponse.id) {
+                          // Account already has access to the lock, so ignore
+                          accountResponse.primaryLockId = lockAccount.lockId;
+                          let updateAccountPromise = UpdateAccount(accountResponse);
+                          updateAccountPromise.then((updateAccountResponse) => {
+                            if(updateAccountResponse == 200) {
+                              let newPrimaryLock:Promise<ILock> = GetLock(lockAccount.lockId);
+                              newPrimaryLock.then((newPrimaryLockResponse) => {
+                                if(newPrimaryLockResponse.status != getLocalLockStatus()) {
+                                  // The new primary lock's status does not match our local interface locked status
+                                  // We fix it here:
+                                  toggleLockInterface();
+                                  if(newPrimaryLockResponse.status) {
+                                    lockStatusCookie = "locked";
+                                    setCookie("lockStatus", "locked", 1);
+                                  } else {
+                                    lockStatusCookie = "unlocked";
+                                    setCookie("lockStatus", "unlocked", 1);
+                                  }
+                                }
+                              });
+                            } else {
+                              alert("Fejl - Der gik noget galt");
+                            }
+                          });
+                        }
+                      })
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          radioButtons.forEach((otherButton) => {
+            let otherIcon = otherButton.querySelector('a i.right');
+            otherIcon.setAttribute("class", "far fa-square " + otherIcon.classList[2]);
+            otherButton.setAttribute("data-checked", "false");
+          });
+
+          let icon = this.querySelector('a i.right');
+          //console.log(icon.classList[0]); // far
+          //console.log(icon.classList[1]); // fa-square
+          icon.setAttribute("class", "fas fa-check-square " + icon.classList[2]);
+          button.setAttribute("data-checked", "true");
         });
       });
     });
@@ -972,4 +1063,18 @@ if (!!manageAccountTitle) {
 
     });
   }
+}
+
+let primaryLockMenuBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById('menuBtn');
+let primaryLockMenu: HTMLDivElement = <HTMLDivElement>document.getElementById('menu');
+if (!!primaryLockMenuBtn && !!primaryLockMenu) {
+  let menuShown:boolean = false;
+  primaryLockMenuBtn.addEventListener('click', function() {
+    if (menuShown) {
+      primaryLockMenu.style.display = "none";
+    } else {
+      primaryLockMenu.style.display = "block";
+    }
+    menuShown = !menuShown;
+  });
 }
