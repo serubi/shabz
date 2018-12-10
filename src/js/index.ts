@@ -601,6 +601,21 @@ function onLoad() {
           setCookie("googleEmail", getEmail(), 1);
         }
 
+        // Doublecheck that the username in the database matches the one from Google
+        // If it doesn't, update it
+        let account:Promise<IAccount> = GetAccountFromEmail(userEmail);
+        account.then((accountResponse) => {
+          if(accountResponse.name != userName) {
+            accountResponse.name = userName;
+            let updateAccountPromise = UpdateAccount(accountResponse);
+            updateAccountPromise.then((updateAccountResponse) => {
+              if(updateAccountResponse != 200) {
+                console.log("Fejl ved opdatering af brugernavn");
+              }
+            });
+          }
+        });
+
         //console.log(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail());
       } else {
         // If user is not logged in
