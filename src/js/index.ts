@@ -53,11 +53,11 @@ let userName: string = "";
 
 async function GetAccount(id: number) {
   try {
-   return await axios.get<IAccount>(uri + "account/" + id).then(function (response: AxiosResponse<IAccount>) {
+    return await axios.get<IAccount>(uri + "account/" + id).then(function (response: AxiosResponse<IAccount>) {
       return response.data;
     })
   } catch (error) {
-    
+
   }
 }
 
@@ -181,35 +181,44 @@ async function UpdateLock(lock: ILock) {
   }
 }
 
-let count : number = 0;
+let count: number = 0;
 
 function GetAllLogs(): void {
   axios.get<ILog[]>(uri + "log/" + count)
     .then(function (response: AxiosResponse<ILog[]>): void {
       response.data.forEach((log: ILog) => {
-        let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-        GetAccount(log.accountId).then(function (result: IAccount) {
-          li.innerHTML = result.name;
-          let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-          span.innerHTML = log.date.toString();
-          li.appendChild(span);
-          let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-          p.innerHTML = log.status.toString();
-          if (p.innerHTML == "true") {
-            p.classList.add("locked")
-            p.innerHTML = "Locked";
-          }
-          else {
-            p.innerHTML = "Unlocked";
-          }
-          li.appendChild(p);
-          logOutput.prepend(li);
-          logOutput.className = "slideUl";
-          li.className = "fadeLi";
-          window.setTimeout(function () {
-            logOutput.className = "";
-          }, 500);
-        });
+
+        let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
+        account.then((accountResponse) => {
+          let accountPrimaryLock: Promise<ILock> = GetLock(accountResponse.primaryLockId);
+          accountPrimaryLock.then((lockResponse) => {
+            if (lockResponse.id == log.lockId) {
+              let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+              GetAccount(log.accountId).then(function (result: IAccount) {
+                li.innerHTML = result.name;
+                let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+                span.innerHTML = log.date.toString();
+                li.appendChild(span);
+                let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+                p.innerHTML = log.status.toString();
+                if (p.innerHTML == "true") {
+                  p.classList.add("locked")
+                  p.innerHTML = "Locked";
+                }
+                else {
+                  p.innerHTML = "Unlocked";
+                }
+                li.appendChild(p);
+                logOutput.prepend(li);
+                logOutput.className = "slideUl";
+                li.className = "fadeLi";
+                window.setTimeout(function () {
+                  logOutput.className = "";
+                }, 500);
+              });
+            }
+          })
+        })
       });
     })
     .catch(function (error: AxiosError): void {
@@ -217,17 +226,17 @@ function GetAllLogs(): void {
     });
 }
 
-let loadMoreLogsBtn : HTMLInputElement = <HTMLInputElement>document.getElementById("loadMoreLogs");
-if(!!loadMoreLogsBtn){
-  loadMoreLogsBtn.addEventListener("click", function(){
+let loadMoreLogsBtn: HTMLInputElement = <HTMLInputElement>document.getElementById("loadMoreLogs");
+if (!!loadMoreLogsBtn) {
+  loadMoreLogsBtn.addEventListener("click", function () {
     count++;
-    if(searchInput.value == ""){
+    if (searchInput.value == "") {
       GetAllLogs();
     }
-    else{
+    else {
       GetSearchedLogs(searchInput.value);
     }
-  })  
+  })
 }
 
 if (!!clearLogBtn) {
@@ -254,7 +263,7 @@ function GetSearchedLogs(input: string): void {
       response.data.forEach((log: ILog) => {
         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
         GetAccount(log.accountId).then(function (response) {
-          if (log.date.search(searchInput.value) >= 0 ) {
+          if (log.date.search(searchInput.value) >= 0) {
             console.log("1");
             li.innerHTML = getName();
             let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
@@ -315,7 +324,7 @@ function GetSearchedLogs(input: string): void {
 let searchInput: HTMLInputElement = <HTMLInputElement>document.getElementById("LogSearch");
 let searchIcon: HTMLInputElement = <HTMLInputElement>document.getElementById("searchIcon");
 
-if(!!searchIcon){
+if (!!searchIcon) {
   searchIcon.addEventListener("click", function () {
     GetSearchedLogs(searchInput.value);
   })
@@ -356,11 +365,11 @@ function toggleLock() {
       let editLock = lockResponse;
 
       editLock.status = getLocalLockStatus();
-      axios.post<ILog>(uri + "log", { accountId: accountResponse.id, date: getDate(), status: getLocalLockStatus() });
+      axios.post<ILog>(uri + "log", { accountId: accountResponse.id, date: getDate(), status: getLocalLockStatus(), lockId: lockResponse.id });
 
       let updateLock = UpdateLock(editLock);
       updateLock.then((updateLockResponse) => {
-        if(updateLockResponse == 200) {
+        if (updateLockResponse == 200) {
           // Lock was updated successfully
           if (lockStatusCookie == "locked") {
             lockStatusCookie = "unlocked";
@@ -379,7 +388,7 @@ function toggleLock() {
 }
 (<any>window).toggleLock = toggleLock;
 
-function getLocalLockStatus():boolean {
+function getLocalLockStatus(): boolean {
   if (!!lockButton) {
     if (lockButton.classList.contains("unlocked")) {
       return false;
@@ -438,16 +447,16 @@ function setCookie(cookieName: string, cookieValue: string, expiryDays: number) 
 function onSignIn(googleUser: any) {
   var profile = googleUser.getBasicProfile();
   if (!!profile && profile.getEmail() != null) {
-    
-    let account:Promise<IAccount> = GetAccountFromEmail(profile.getEmail());
+
+    let account: Promise<IAccount> = GetAccountFromEmail(profile.getEmail());
 
     account.then((response) => {
-      if(response.id != null && response.id > 0) {
+      if (response.id != null && response.id > 0) {
         // Get the account's primary lock
-        let accountPrimaryLock:Promise<ILock> = GetLock(response.primaryLockId);
+        let accountPrimaryLock: Promise<ILock> = GetLock(response.primaryLockId);
         accountPrimaryLock.then((lockResponse) => {
           // Set the lockStatus cookie based on the lock's status in the database
-          if(lockResponse.status) {
+          if (lockResponse.status) {
             lockStatusCookie = "locked";
             setCookie("lockStatus", "locked", 1);
           } else {
@@ -474,7 +483,7 @@ function onFirstSignIn(googleUser: any) {
     if (!!lockName && !!lock && !!accessCode) {
       lock.then((lockResponse) => {
 
-        if(lockResponse.dateRegistered != null) {
+        if (lockResponse.dateRegistered != null) {
           alert("Denne Shabz Smart Lock er allerede registreret");
           return;
         }
@@ -499,7 +508,7 @@ function onFirstSignIn(googleUser: any) {
                 // Account blev tilføjet
                 shouldContinue = true;
 
-                let newAccountFromDB:Promise<IAccount> = GetAccountFromEmail(profile.getEmail());
+                let newAccountFromDB: Promise<IAccount> = GetAccountFromEmail(profile.getEmail());
                 newAccountFromDB.then((newAccountFromDBResponse) => {
                   accountId = newAccountFromDBResponse.id;
                 });
@@ -514,22 +523,22 @@ function onFirstSignIn(googleUser: any) {
               if (putResponse == 200) {
                 // Lock blev opdateret
                 let allRoles: Promise<Array<IRole>> = GetAllRoles();
-                let roleId:number = 0;
+                let roleId: number = 0;
 
                 allRoles.then((roleResponse) => {
                   roleResponse.forEach((role) => {
                     // Find the admin role (accessLevel 10)
-                    if(role.accessLevel == 10) {
+                    if (role.accessLevel == 10) {
                       roleId = role.id;
                     }
                   });
                 }).then(() => {
-                  if(roleId > 0) {
-                    let newLockAccount: ILockAccount = ({ id: 0, lockId: lockResponse.id, roleId: roleId, accountId: accountId});
+                  if (roleId > 0) {
+                    let newLockAccount: ILockAccount = ({ id: 0, lockId: lockResponse.id, roleId: roleId, accountId: accountId });
                     console.log(newLockAccount);
                     let newLockAccountResponse = AddLockAccount(newLockAccount);
                     newLockAccountResponse.then((LockAccountResponse) => {
-                      if(LockAccountResponse == 200) {
+                      if (LockAccountResponse == 200) {
                         // Lock Account was added successfully
 
                         // Set the lockStatus cookie based on the lock's status in the database
@@ -540,7 +549,7 @@ function onFirstSignIn(googleUser: any) {
                           lockStatusCookie = "unlocked";
                           setCookie("lockStatus", "unlocked", 1);
                         }
-                        
+
                         alert("\"" + lockResponse.name + "\" er nu klar til brug!");
                         window.location.href = "./index.html";
                       }
@@ -658,13 +667,13 @@ function onLoad() {
 
         // Doublecheck that the username in the database matches the one from Google
         // If it doesn't, update it
-        let account:Promise<IAccount> = GetAccountFromEmail(userEmail);
+        let account: Promise<IAccount> = GetAccountFromEmail(userEmail);
         account.then((accountResponse) => {
-          if(accountResponse.name != userName) {
+          if (accountResponse.name != userName) {
             accountResponse.name = userName;
             let updateAccountPromise = UpdateAccount(accountResponse);
             updateAccountPromise.then((updateAccountResponse) => {
-              if(updateAccountResponse != 200) {
+              if (updateAccountResponse != 200) {
                 console.log("Fejl ved opdatering af brugernavn");
               }
             });
@@ -715,12 +724,12 @@ document.addEventListener('DOMContentLoaded', function () {
 }, false);
 
 if (!!verifyLockBtn) {
-  verifyLockBtn.addEventListener('click', function() {
+  verifyLockBtn.addEventListener('click', function () {
     let lockAccessCodeView: HTMLDivElement = <HTMLDivElement>document.getElementById("view1");
 
     if (!!accessCode) {
-      if(accessCode.value.length == 7) {
-        
+      if (accessCode.value.length == 7) {
+
         lock = GetLockFromAccessCode(accessCode.value);
 
         lock.then((lockResponse) => {
@@ -734,13 +743,13 @@ if (!!verifyLockBtn) {
             let lockNameView: HTMLDivElement = <HTMLDivElement>document.getElementById("view2");
             let lockGoogleView: HTMLDivElement = <HTMLDivElement>document.getElementById("view3");
 
-            if(!!lockAccessCodeView && !!lockNameView && !!lockName) {
+            if (!!lockAccessCodeView && !!lockNameView && !!lockName) {
               lockAccessCodeView.classList.add('hidden');
               lockName.value = lockResponse.name;
               lockNameView.classList.remove('hidden');
 
               let nameLockBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById("nameLockBtn");
-              nameLockBtn.addEventListener('click', function() {
+              nameLockBtn.addEventListener('click', function () {
                 lockNameView.classList.add('hidden');
                 lockGoogleView.classList.remove('hidden');
               });
@@ -774,19 +783,19 @@ let manageAccountTitle: HTMLHeadingElement = <HTMLHeadingElement>document.getEle
 let allUserLocks: Promise<Array<ILockAccount>> = GetAllLockAccounts();
 if (!!allUserLocksList || !!inviteLocks || !!primaryLocksList) {
   allUserLocks.then((lockAccountResponse) => {
-    let account:Promise<IAccount> = GetAccountFromEmail(getEmail());
+    let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
 
     account.then((accountResponse) => {
       lockAccountResponse.forEach((lockAccount) => {
         if (lockAccount.accountId == accountResponse.id) {
           // Account owns Lock Account
-          let lock:Promise<ILock> = GetLock(lockAccount.lockId);
+          let lock: Promise<ILock> = GetLock(lockAccount.lockId);
           lock.then((lockResponse) => {
-            if(!!allUserLocksList)
+            if (!!allUserLocksList)
               allUserLocksList.innerHTML += '<li class="listButton"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fas fa-chevron-right right"></i></a></li>';
 
             if (!!primaryLocksList) {
-              let isPrimary:boolean = lockResponse.id == accountResponse.primaryLockId;
+              let isPrimary: boolean = lockResponse.id == accountResponse.primaryLockId;
               primaryLocksList.innerHTML += '<li class="listButton" data-checked="' + isPrimary + '" data-lockid="' + lockResponse.id + '"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fa' + (isPrimary ? "s" : "r") + ' fa-' + (isPrimary ? "check-" : "") + 'square right"></i></a></li>';
               radioListAddEventListener();
             }
@@ -794,7 +803,7 @@ if (!!allUserLocksList || !!inviteLocks || !!primaryLocksList) {
             if (!!inviteLocks) {
               if (!!manageAccountTitle) {
                 allUserLocks.then((lockAccountResponse2) => {
-                  let isAdded:boolean = false;
+                  let isAdded: boolean = false;
                   lockAccountResponse2.forEach((lockAccount2) => {
                     if (+accountIdParam != null && +accountIdParam > 0) {
                       if (lockAccount2.accountId == +accountIdParam && lockAccount2.lockId == lockResponse.id) {
@@ -845,16 +854,16 @@ function getLockAccountsSharingSameLocks() {
       });
     }).then(() => {
       if (!!allSharedLockAccountsList) {
-        let accountIdHistory:Array<number> = [];
+        let accountIdHistory: Array<number> = [];
         allSharedLockAccounts.forEach((lockAccount) => {
-          let shouldContinue:boolean = true;
+          let shouldContinue: boolean = true;
           accountIdHistory.forEach((accountId) => {
-            if(lockAccount.accountId == accountId) {
+            if (lockAccount.accountId == accountId) {
               shouldContinue = false;
             }
           });
 
-          if(shouldContinue) {
+          if (shouldContinue) {
             accountIdHistory.push(lockAccount.accountId);
             let account: Promise<IAccount> = GetAccount(lockAccount.accountId);
             let role: Promise<IRole> = GetRole(lockAccount.roleId);
@@ -867,23 +876,23 @@ function getLockAccountsSharingSameLocks() {
         });
       }
     })
-  });  
+  });
 }
 
 let inviteBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById('sendInviteBtn');
 if (!!inviteBtn && !!inviteLocks) {
-  inviteBtn.addEventListener('click', function() {
-    let stop:boolean = false;
-    let gmailToInvite:HTMLInputElement = <HTMLInputElement>document.getElementById('addAccountEmail');
+  inviteBtn.addEventListener('click', function () {
+    let stop: boolean = false;
+    let gmailToInvite: HTMLInputElement = <HTMLInputElement>document.getElementById('addAccountEmail');
     if (!/^([A-Za-z0-9_\-\.])+\@([gmail|GMAIL])+\.(com)$/.test(gmailToInvite.value)) {
       // Not valid  gmail id.
       alert("Gmail er ugyldig");
       stop = true;
     }
 
-    if(!stop) {
-      let shouldContinue:boolean = false;
-      let accountId:number;
+    if (!stop) {
+      let shouldContinue: boolean = false;
+      let accountId: number;
 
       let existingAccount: Promise<IAccount> = GetAccountFromEmail(gmailToInvite.value);
       existingAccount.then((existingAccountResponse) => {
@@ -893,7 +902,7 @@ if (!!inviteBtn && !!inviteLocks) {
         } else {
           shouldContinue = false;
         }
-        
+
       }).then(() => {
 
         inviteLocks.childNodes.forEach((listItem: HTMLLIElement) => {
@@ -902,11 +911,11 @@ if (!!inviteBtn && !!inviteLocks) {
               // if lock is checked
               let lockId: number = +listItem.dataset.lockid;
 
-              let getAllLockAccounts:Promise<Array<ILockAccount>> = GetAllLockAccounts();
+              let getAllLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
               getAllLockAccounts.then((allLockAccountsArray) => {
-                if(shouldContinue) {
+                if (shouldContinue) {
                   allLockAccountsArray.forEach((lockAccount) => {
-                    if(lockAccount.lockId == lockId && lockAccount.accountId == accountId) {
+                    if (lockAccount.lockId == lockId && lockAccount.accountId == accountId) {
                       alert("Denne bruger er allerede knyttet til denne lås");
                       stop = true;
                     }
@@ -928,7 +937,7 @@ if (!!inviteBtn && !!inviteLocks) {
                   });
                 }
 
-                if(!stop) {
+                if (!stop) {
                   let allRoles: Promise<Array<IRole>> = GetAllRoles();
                   let roleId: number = 0;
 
@@ -995,7 +1004,7 @@ function radioListAddEventListener() {
       radioButtons.forEach((button) => {
         button.addEventListener('click', function () {
 
-          if(button.parentElement.getAttribute('id') == "listOfLocksForPrimary") {
+          if (button.parentElement.getAttribute('id') == "listOfLocksForPrimary") {
             primaryLocksList.childNodes.forEach((listItem: HTMLLIElement) => {
               if (!!listItem.outerHTML) {
                 let lockId: number = +listItem.dataset.lockid;
@@ -1013,14 +1022,16 @@ function radioListAddEventListener() {
                           accountResponse.primaryLockId = lockAccount.lockId;
                           let updateAccountPromise = UpdateAccount(accountResponse);
                           updateAccountPromise.then((updateAccountResponse) => {
-                            if(updateAccountResponse == 200) {
-                              let newPrimaryLock:Promise<ILock> = GetLock(lockAccount.lockId);
+                            if (updateAccountResponse == 200) {
+                              logOutput.innerText = "";
+                              GetAllLogs();
+                              let newPrimaryLock: Promise<ILock> = GetLock(lockAccount.lockId);
                               newPrimaryLock.then((newPrimaryLockResponse) => {
-                                if(newPrimaryLockResponse.status != getLocalLockStatus()) {
+                                if (newPrimaryLockResponse.status != getLocalLockStatus()) {
                                   // The new primary lock's status does not match our local interface locked status
                                   // We fix it here:
                                   toggleLockInterface();
-                                  if(newPrimaryLockResponse.status) {
+                                  if (newPrimaryLockResponse.status) {
                                     lockStatusCookie = "locked";
                                     setCookie("lockStatus", "locked", 1);
                                   } else {
@@ -1061,7 +1072,7 @@ function radioListAddEventListener() {
 
 if (!!manageAccountTitle) {
   if (+accountIdParam != null && +accountIdParam > 0) {
-    let accountToManage:Promise<IAccount> = GetAccount(+accountIdParam);
+    let accountToManage: Promise<IAccount> = GetAccount(+accountIdParam);
     accountToManage.then((accountToManageResponse) => {
       manageAccountTitle.innerText = accountToManageResponse.name;
 
@@ -1075,7 +1086,7 @@ if (!!manageAccountTitle) {
               let getAllLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
               if (listItem.dataset.checked.toLowerCase() == "true") {
                 // if lock is checked
-                let shouldAdd:boolean = true;
+                let shouldAdd: boolean = true;
 
                 getAllLockAccounts.then((allLockAccountsArray) => {
                   allLockAccountsArray.forEach((lockAccount) => {
@@ -1105,7 +1116,7 @@ if (!!manageAccountTitle) {
                           alert("Brugeren blev tilføjet til låsen");
                         }
                       });
-                      
+
                     });
                   }
                 });
@@ -1138,8 +1149,8 @@ if (!!manageAccountTitle) {
 let primaryLockMenuBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById('menuBtn');
 let primaryLockMenu: HTMLDivElement = <HTMLDivElement>document.getElementById('menu');
 if (!!primaryLockMenuBtn && !!primaryLockMenu) {
-  let menuShown:boolean = false;
-  primaryLockMenuBtn.addEventListener('click', function() {
+  let menuShown: boolean = false;
+  primaryLockMenuBtn.addEventListener('click', function () {
     if (menuShown) {
       primaryLockMenu.style.display = "none";
     } else {

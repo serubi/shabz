@@ -17,7 +17,8 @@ export interface ILog {
   id: number,
   accountId: number,
   date: string,
-  status: boolean
+  status: boolean,
+  lockId: number
 }
 
 export interface IRole {
