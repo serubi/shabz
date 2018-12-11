@@ -34,7 +34,7 @@
   <div class="content">
     <div class="log">
       <div class="inputField withIcon">
-        <i class="fas fa-search"></i>
+        <i class="fas fa-search" id="searchIcon"></i>
         <input type="search" placeholder="Search" id="LogSearch" (change)="GetSearchedLogs()">
       </div>
       <ul id="log">
@@ -43,9 +43,10 @@
               <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p>Unlocked</p></li>
               <li>Rasmus Dolmer<span>26-11-2018 20:01</span><br><p class="locked">Locked</p></li> -->
       </ul>
+      <input type="submit" id="loadMoreLogs" class="btnPrimary" value="Load More">
     </div>
 
-    <span id="ClearLogBtn"><i class="fas fa-trash"></i></span>
+    <!-- <span id="ClearLogBtn"><i class="fas fa-trash"></i></span> -->
   </div>
 
   <nav class="navMain">

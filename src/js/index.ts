@@ -10,7 +10,7 @@ const uri: string = "https://shabzsmartlock.azurewebsites.net/api/";
 
 
 let lockButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("lockControlButton");
-let logOutput: HTMLUListElement = <HTMLUListElement>document.getElementById("log");
+let logOutput: any = <any>document.getElementById("log");
 let clearLogBtn: HTMLButtonElement = <HTMLButtonElement>document.getElementById("ClearLogBtn");
 let signOutBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById("signOutBtn");
 let verifyLockBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById("verifyLockBtn");
@@ -49,7 +49,7 @@ function CreateLog() {
   }, 500);
 }
 
-let userName : string = "";
+let userName: string = "";
 
 async function GetAccount(id: number) {
   try {
@@ -94,6 +94,16 @@ async function GetRole(id: number) {
 async function AddAccount(account: IAccount) {
   try {
     return await axios.post<IAccount>(uri + "account/", account).then(function (response: AxiosResponse) {
+      return response.status;
+    })
+  } catch (error) {
+
+  }
+}
+
+async function UpdateAccount(account: IAccount) {
+  try {
+    return await axios.put<IAccount>(uri + "account/" + account.id, account).then(function (response: AxiosResponse) {
       return response.status;
     })
   } catch (error) {
@@ -171,12 +181,14 @@ async function UpdateLock(lock: ILock) {
   }
 }
 
+let count : number = 0;
+
 function GetAllLogs(): void {
-  axios.get<ILog[]>(uri + "log")
+  axios.get<ILog[]>(uri + "log/" + count)
     .then(function (response: AxiosResponse<ILog[]>): void {
       response.data.forEach((log: ILog) => {
         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-        GetAccount(log.accountId).then(function(result : IAccount){
+        GetAccount(log.accountId).then(function (result: IAccount) {
           li.innerHTML = result.name;
           let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
           span.innerHTML = log.date.toString();
@@ -187,11 +199,11 @@ function GetAllLogs(): void {
             p.classList.add("locked")
             p.innerHTML = "Locked";
           }
-          else{
+          else {
             p.innerHTML = "Unlocked";
           }
           li.appendChild(p);
-          logOutput.appendChild(li);
+          logOutput.prepend(li);
           logOutput.className = "slideUl";
           li.className = "fadeLi";
           window.setTimeout(function () {
@@ -205,12 +217,25 @@ function GetAllLogs(): void {
     });
 }
 
+let loadMoreLogsBtn : HTMLInputElement = <HTMLInputElement>document.getElementById("loadMoreLogs");
+if(!!loadMoreLogsBtn){
+  loadMoreLogsBtn.addEventListener("click", function(){
+    count++;
+    if(searchInput.value == ""){
+      GetAllLogs();
+    }
+    else{
+      GetSearchedLogs(searchInput.value);
+    }
+  })  
+}
+
 if (!!clearLogBtn) {
   clearLogBtn.addEventListener("click", function () {
     if (confirm("Er du sikker på at du vil slette hele loggen?")) {
       logOutput.classList.add("fadeClearUl");
       window.setTimeout(function () {
-        axios.delete(uri + "log/")
+        axios.delete(uri + "log/DeleteAll")
           .then(function (response: AxiosResponse<ILog>): void {
             logOutput.innerHTML = "";
           })
@@ -226,44 +251,84 @@ function GetSearchedLogs(input: string): void {
   logOutput.innerHTML = "";
   axios.get<ILog[]>(uri + "log")
     .then(function (response: AxiosResponse<ILog[]>): void {
-      response.data.forEach((log: ILog) => { 
+      response.data.forEach((log: ILog) => {
         let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-        GetAccount(log.accountId).then(function(result : IAccount){
-          if(searchInput.value == result.name){
-            li.innerHTML = result.name;
+        GetAccount(log.accountId).then(function (response) {
+          if (log.date.search(searchInput.value) >= 0 ) {
+            console.log("1");
+            li.innerHTML = getName();
             let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
             span.innerHTML = log.date.toString();
             li.appendChild(span);
             let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
             p.innerHTML = log.status.toString();
-            if (p.innerHTML == "Locked") {
+            if (p.innerHTML == "true") {
               p.classList.add("locked")
+              p.innerHTML = "Locked";
+            }
+            else {
+              p.innerHTML = "Unlocked";
             }
             li.appendChild(p);
-            logOutput.appendChild(li);  
+            logOutput.appendChild(li);
             logOutput.className = "slideUl";
             li.className = "fadeLi";
             window.setTimeout(function () {
               logOutput.className = "";
-            }, 500);
+            })
           }
-        });
+          if (log.date.search(searchInput.value) == -1 && searchInput.value.length > 0) {
+            console.log("2");
+            //logOutput.innerHTML = "";
+          }
+          if (searchInput.value.length == 0) {
+            console.log("3");
+            li.innerHTML = getName();
+            let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+            span.innerHTML = log.date.toString();
+            li.appendChild(span);
+            let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+            p.innerHTML = log.status.toString();
+            if (p.innerHTML == "true") {
+              p.classList.add("locked")
+              p.innerHTML = "Locked";
+            }
+            else {
+              p.innerHTML = "Unlocked";
+            }
+            li.appendChild(p);
+            logOutput.appendChild(li);
+            logOutput.className = "slideUl";
+            li.className = "fadeLi";
+            window.setTimeout(function () {
+              logOutput.className = "";
+            })
+          }
+        })
       });
     })
     .catch(function (error: AxiosError): void {
-      GetAllLogs();
+      //GetAllLogs();
     });
 }
 
 let searchInput: HTMLInputElement = <HTMLInputElement>document.getElementById("LogSearch");
+let searchIcon: HTMLInputElement = <HTMLInputElement>document.getElementById("searchIcon");
+
+if(!!searchIcon){
+  searchIcon.addEventListener("click", function () {
+    GetSearchedLogs(searchInput.value);
+  })
+}
 
 if (!!searchInput) {
   GetAllLogs();
-  searchInput.addEventListener("textchanged", function (e) {
-    GetSearchedLogs(searchInput.value);
+  searchInput.addEventListener("keydown", function (e) {
+    if (e.keyCode == 13) {
+      GetSearchedLogs(searchInput.value);
+    }
   });
 }
-
 var lockIcon = document.getElementById("lockStatus");
 var lockStatusCookie = getCookie("lockStatus");
 
@@ -591,6 +656,21 @@ function onLoad() {
           setCookie("googleEmail", getEmail(), 1);
         }
 
+        // Doublecheck that the username in the database matches the one from Google
+        // If it doesn't, update it
+        let account:Promise<IAccount> = GetAccountFromEmail(userEmail);
+        account.then((accountResponse) => {
+          if(accountResponse.name != userName) {
+            accountResponse.name = userName;
+            let updateAccountPromise = UpdateAccount(accountResponse);
+            updateAccountPromise.then((updateAccountResponse) => {
+              if(updateAccountResponse != 200) {
+                console.log("Fejl ved opdatering af brugernavn");
+              }
+            });
+          }
+        });
+
         //console.log(gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail());
       } else {
         // If user is not logged in
@@ -687,11 +767,12 @@ if (!!verifyLockBtn) {
 const urlParams = new URLSearchParams(window.location.search);
 const accountIdParam = urlParams.get('id');
 
+let primaryLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocksForPrimary');
 let allUserLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocks');
 let inviteLocks: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocksForInvite');
 let manageAccountTitle: HTMLHeadingElement = <HTMLHeadingElement>document.getElementById('manageAccountTitle');
 let allUserLocks: Promise<Array<ILockAccount>> = GetAllLockAccounts();
-if (!!allUserLocksList || !!inviteLocks) {
+if (!!allUserLocksList || !!inviteLocks || !!primaryLocksList) {
   allUserLocks.then((lockAccountResponse) => {
     let account:Promise<IAccount> = GetAccountFromEmail(getEmail());
 
@@ -703,6 +784,12 @@ if (!!allUserLocksList || !!inviteLocks) {
           lock.then((lockResponse) => {
             if(!!allUserLocksList)
               allUserLocksList.innerHTML += '<li class="listButton"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fas fa-chevron-right right"></i></a></li>';
+
+            if (!!primaryLocksList) {
+              let isPrimary:boolean = lockResponse.id == accountResponse.primaryLockId;
+              primaryLocksList.innerHTML += '<li class="listButton" data-checked="' + isPrimary + '" data-lockid="' + lockResponse.id + '"><a href="#"><i class="fas fa-lock"></i><span>' + lockResponse.name + '</span><i class="fa' + (isPrimary ? "s" : "r") + ' fa-' + (isPrimary ? "check-" : "") + 'square right"></i></a></li>';
+              radioListAddEventListener();
+            }
 
             if (!!inviteLocks) {
               if (!!manageAccountTitle) {
@@ -878,7 +965,7 @@ function checkListAddEventListener() {
     let checkButtonLists: NodeListOf<HTMLUListElement> = <NodeListOf<HTMLUListElement>>document.querySelectorAll(".listButtonsCheck");
 
     checkButtonLists.forEach((ul) => {
-      let checkButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>document.querySelectorAll(".listButton");
+      let checkButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>ul.querySelectorAll(".listButton");
 
       checkButtons.forEach((button) => {
         button.addEventListener('click', function () {
@@ -892,6 +979,80 @@ function checkListAddEventListener() {
             icon.setAttribute("class", "far fa-square " + icon.classList[2]);
             button.setAttribute("data-checked", "false");
           }
+        });
+      });
+    });
+  }
+}
+
+function radioListAddEventListener() {
+  if (!!document.querySelector(".listButtonsRadio")) {
+    let radioButtonLists: NodeListOf<HTMLUListElement> = <NodeListOf<HTMLUListElement>>document.querySelectorAll(".listButtonsRadio");
+
+    radioButtonLists.forEach((ul) => {
+      let radioButtons: NodeListOf<HTMLLIElement> = <NodeListOf<HTMLLIElement>>ul.querySelectorAll(".listButton");
+
+      radioButtons.forEach((button) => {
+        button.addEventListener('click', function () {
+
+          if(button.parentElement.getAttribute('id') == "listOfLocksForPrimary") {
+            primaryLocksList.childNodes.forEach((listItem: HTMLLIElement) => {
+              if (!!listItem.outerHTML) {
+                let lockId: number = +listItem.dataset.lockid;
+                let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
+                let getAllLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
+                account.then((accountResponse) => {
+                  if (listItem.dataset.checked.toLowerCase() == "true") {
+                    // if lock is checked
+                    //let shouldAdd: boolean = true;
+
+                    getAllLockAccounts.then((allLockAccountsArray) => {
+                      allLockAccountsArray.forEach((lockAccount) => {
+                        if (lockAccount.lockId == lockId && lockAccount.accountId == accountResponse.id) {
+                          // Account already has access to the lock, so ignore
+                          accountResponse.primaryLockId = lockAccount.lockId;
+                          let updateAccountPromise = UpdateAccount(accountResponse);
+                          updateAccountPromise.then((updateAccountResponse) => {
+                            if(updateAccountResponse == 200) {
+                              let newPrimaryLock:Promise<ILock> = GetLock(lockAccount.lockId);
+                              newPrimaryLock.then((newPrimaryLockResponse) => {
+                                if(newPrimaryLockResponse.status != getLocalLockStatus()) {
+                                  // The new primary lock's status does not match our local interface locked status
+                                  // We fix it here:
+                                  toggleLockInterface();
+                                  if(newPrimaryLockResponse.status) {
+                                    lockStatusCookie = "locked";
+                                    setCookie("lockStatus", "locked", 1);
+                                  } else {
+                                    lockStatusCookie = "unlocked";
+                                    setCookie("lockStatus", "unlocked", 1);
+                                  }
+                                }
+                              });
+                            } else {
+                              alert("Fejl - Der gik noget galt");
+                            }
+                          });
+                        }
+                      })
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          radioButtons.forEach((otherButton) => {
+            let otherIcon = otherButton.querySelector('a i.right');
+            otherIcon.setAttribute("class", "far fa-square " + otherIcon.classList[2]);
+            otherButton.setAttribute("data-checked", "false");
+          });
+
+          let icon = this.querySelector('a i.right');
+          //console.log(icon.classList[0]); // far
+          //console.log(icon.classList[1]); // fa-square
+          icon.setAttribute("class", "fas fa-check-square " + icon.classList[2]);
+          button.setAttribute("data-checked", "true");
         });
       });
     });
@@ -972,4 +1133,18 @@ if (!!manageAccountTitle) {
 
     });
   }
+}
+
+let primaryLockMenuBtn: HTMLAnchorElement = <HTMLAnchorElement>document.getElementById('menuBtn');
+let primaryLockMenu: HTMLDivElement = <HTMLDivElement>document.getElementById('menu');
+if (!!primaryLockMenuBtn && !!primaryLockMenu) {
+  let menuShown:boolean = false;
+  primaryLockMenuBtn.addEventListener('click', function() {
+    if (menuShown) {
+      primaryLockMenu.style.display = "none";
+    } else {
+      primaryLockMenu.style.display = "block";
+    }
+    menuShown = !menuShown;
+  });
 }
