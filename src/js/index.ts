@@ -25,28 +25,34 @@ function getDate(): string {
 (<any>window).getDate = getDate;
 
 function CreateLog() {
-  let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-  li.innerHTML = getName();
-  let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-  let todayOutput: string = <string>"";
+  let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
+  account.then((accountResponse) => {
+    let accountPrimaryLock: Promise<ILock> = GetLock(accountResponse.primaryLockId);
+    accountPrimaryLock.then((lockResponse) => {
+      let li: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+      li.innerHTML = getName();
+      let span: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
+      let todayOutput: string = <string>"";
 
-  span.innerHTML = getDate();
-  li.appendChild(span);
-  let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-  if (lockButton.classList.contains("unlocked")) {
-    p.innerHTML = "Locked";
-    p.classList.add("locked");
-  }
-  else {
-    p.innerHTML = "Unlocked";
-  }
-  li.appendChild(p);
-  logOutput.appendChild(li);
-  logOutput.className = "slideUl";
-  li.className = "fadeLi";
-  window.setTimeout(function () {
-    logOutput.className = "";
-  }, 500);
+      span.innerHTML = getDate();
+      li.appendChild(span);
+      let p: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+      if (lockResponse.status == false) {
+        p.innerHTML = "Locked";
+        p.classList.add("locked");
+      }
+      else {
+        p.innerHTML = "Unlocked";
+      }
+      li.appendChild(p);
+      logOutput.appendChild(li);
+      logOutput.className = "slideUl";
+      li.className = "fadeLi";
+      window.setTimeout(function () {
+        logOutput.className = "";
+      }, 500);
+    })
+  })
 }
 
 let userName: string = "";
@@ -415,7 +421,7 @@ function toggleLockInterface() {
     if (getLocalLockStatus()) {
       lockedStatusText.innerText = "Låst";
     } else {
-      lockedStatusText.innerText = "Ulåst";
+      lockedStatusText.innerText = "Åben";
     }
   }
 }
@@ -1159,3 +1165,26 @@ if (!!primaryLockMenuBtn && !!primaryLockMenu) {
     menuShown = !menuShown;
   });
 }
+
+function GetlockStatus() {
+  window.setInterval(function () {
+    let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
+    account.then((accountResponse) => {
+      let accountPrimaryLock: Promise<ILock> = GetLock(accountResponse.primaryLockId);
+      accountPrimaryLock.then((lockResponse) => {
+        if(getLocalLockStatus() != lockResponse.status){
+          toggleLockInterface();
+          
+        }
+        if(lockResponse.status == true){
+          setCookie("lockStatus", "locked", 1);
+        }
+        else{
+          setCookie("lockStatus", "unlocked", 0);
+        }
+      })
+    })
+  }, 5000)
+}
+
+GetlockStatus();
