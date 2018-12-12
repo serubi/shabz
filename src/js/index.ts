@@ -368,8 +368,6 @@ if (!!lockButton) {
 }
 
 function toggleLock() {
-  toggleLockInterface();
-
   if (!!logOutput) {
     CreateLog();
   }
@@ -397,6 +395,8 @@ function toggleLock() {
           updateLock.then((updateLockResponse) => {
             if (updateLockResponse == 200) {
               // Lock was updated successfully
+              toggleLockInterface();
+              
               if (lockStatusCookie == "locked") {
                 lockStatusCookie = "unlocked";
                 setCookie("lockStatus", "unlocked", 1);
