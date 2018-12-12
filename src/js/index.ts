@@ -388,6 +388,8 @@ function toggleLock() {
         });
 
         if (hasPermission) {
+          toggleLockInterface();
+          
           editLock.status = getLocalLockStatus();
           axios.post<ILog>(uri + "log", { accountId: accountResponse.id, date: getDate(), status: getLocalLockStatus(), lockId: lockResponse.id });
 
@@ -395,8 +397,6 @@ function toggleLock() {
           updateLock.then((updateLockResponse) => {
             if (updateLockResponse == 200) {
               // Lock was updated successfully
-              toggleLockInterface();
-              
               if (lockStatusCookie == "locked") {
                 lockStatusCookie = "unlocked";
                 setCookie("lockStatus", "unlocked", 1);
