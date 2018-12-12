@@ -137,6 +137,16 @@ async function DeleteLockAccount(id: number) {
   }
 }
 
+async function UpdateLockAccount(lockAccount: ILockAccount) {
+  try {
+    return await axios.put<ILockAccount>(uri + "lock_account/" + lockAccount.id, lockAccount).then(function (response: AxiosResponse) {
+      return response.status;
+    })
+  } catch (error) {
+
+  }
+}
+
 async function GetLock(id: number) {
   try {
     return await axios.get<ILock>(uri + "lock/" + id).then(function (response: AxiosResponse<ILock>) {
@@ -370,25 +380,38 @@ function toggleLock() {
     accountPrimaryLock.then((lockResponse) => {
       let editLock = lockResponse;
 
-      editLock.status = getLocalLockStatus();
-      axios.post<ILog>(uri + "log", { accountId: accountResponse.id, date: getDate(), status: getLocalLockStatus(), lockId: lockResponse.id });
-
-      let updateLock = UpdateLock(editLock);
-      updateLock.then((updateLockResponse) => {
-        if (updateLockResponse == 200) {
-          // Lock was updated successfully
-          if (lockStatusCookie == "locked") {
-            lockStatusCookie = "unlocked";
-            setCookie("lockStatus", "unlocked", 1);
-            console.log("unlocking...");
-          } else {
-            lockStatusCookie = "locked";
-            setCookie("lockStatus", "locked", 1);
-            console.log("locking...");
+      let allLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
+      let hasPermission = false;
+      allLockAccounts.then((allLockAccountsResponse) => {
+        allLockAccountsResponse.forEach((lockAccount) => {
+          if(lockAccount.accountId == accountResponse.id && lockAccount.lockId == editLock.id) {
+            hasPermission = true;
           }
+        });
+
+        if (hasPermission) {
+          editLock.status = getLocalLockStatus();
+          axios.post<ILog>(uri + "log", { accountId: accountResponse.id, date: getDate(), status: getLocalLockStatus(), lockId: lockResponse.id });
+
+          let updateLock = UpdateLock(editLock);
+          updateLock.then((updateLockResponse) => {
+            if (updateLockResponse == 200) {
+              // Lock was updated successfully
+              if (lockStatusCookie == "locked") {
+                lockStatusCookie = "unlocked";
+                setCookie("lockStatus", "unlocked", 1);
+                console.log("unlocking...");
+              } else {
+                lockStatusCookie = "locked";
+                setCookie("lockStatus", "locked", 1);
+                console.log("locking...");
+              }
+            }
+          });
+        } else {
+          alert("Du har ikke adgang til denne lås");
         }
       });
-
     });
   });
 }
@@ -781,12 +804,54 @@ if (!!verifyLockBtn) {
 
 const urlParams = new URLSearchParams(window.location.search);
 const accountIdParam = urlParams.get('id');
+let allUserLocks: Promise<Array<ILockAccount>> = GetAllLockAccounts();
+
+let listOfRoles: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfRoles');
+if (!!listOfRoles && !!accountIdParam) {
+  let accountToManage: Promise<IAccount> = GetAccount(+accountIdParam);
+  let account:Promise<IAccount> = GetAccountFromEmail(getEmail());
+  let allRoles:Promise<Array<IRole>> = GetAllRoles();
+  let roleId:number = 0;
+  let alreadyRun:boolean = false;
+  allUserLocks.then((allUserLocksResponse) => {
+    account.then((accountResponse) => {
+      allUserLocksResponse.forEach((userLock) => {
+      
+        if(accountResponse.id == userLock.accountId) {
+          // Lock is managed by the logged in user
+          accountToManage.then((accountToManageResponse) => {
+            allUserLocksResponse.forEach((userLock2) => {
+              if(userLock.lockId == userLock2.lockId && accountToManageResponse.id == userLock2.accountId) {
+                // Lock is also managed by the account being managed
+                roleId = userLock2.roleId;
+              }
+            });
+          }).then(() => {
+            if (!alreadyRun && roleId > 0) {
+              alreadyRun = true;
+              allRoles.then((allRolesResponse) => {
+                allRolesResponse.forEach((role) => {
+                  let isChecked: boolean = false;
+                  // if(role.accessLevel == 5)
+                  //   isChecked = true;
+                  if (roleId == role.id)
+                    isChecked = true;
+                  listOfRoles.innerHTML += '<li class="listButton" data-accessLevel="' + role.accessLevel + '" data-checked="' + isChecked + '"><a href="#"><i class="fas fa-' + role.icon + '"></i><span>' + role.name + '</span><i class="fa' + (isChecked ? "s" : "r") + ' fa-' + (isChecked ? "check-" : "") + 'square right"></i></a></li>';
+                });
+              });
+            }
+          });
+        }
+
+      });
+    });
+  });
+}
 
 let primaryLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocksForPrimary');
 let allUserLocksList: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocks');
 let inviteLocks: HTMLUListElement = <HTMLUListElement>document.getElementById('listOfLocksForInvite');
 let manageAccountTitle: HTMLHeadingElement = <HTMLHeadingElement>document.getElementById('manageAccountTitle');
-let allUserLocks: Promise<Array<ILockAccount>> = GetAllLockAccounts();
 if (!!allUserLocksList || !!inviteLocks || !!primaryLocksList) {
   allUserLocks.then((lockAccountResponse) => {
     let account: Promise<IAccount> = GetAccountFromEmail(getEmail());
@@ -1078,76 +1143,147 @@ function radioListAddEventListener() {
 
 if (!!manageAccountTitle) {
   if (+accountIdParam != null && +accountIdParam > 0) {
-    let accountToManage: Promise<IAccount> = GetAccount(+accountIdParam);
-    accountToManage.then((accountToManageResponse) => {
-      manageAccountTitle.innerText = accountToManageResponse.name;
+    let accountToManage:Promise<IAccount> = GetAccount(+accountIdParam);
+    let account:Promise<IAccount> = GetAccountFromEmail(getEmail());
+    account.then((accountResponse) => {
+      accountToManage.then((accountToManageResponse) => {
+        manageAccountTitle.innerText = accountToManageResponse.name;
 
-      let updateAccountLocksBtn: HTMLInputElement = <HTMLInputElement>document.getElementById('updateAccountLocks');
-      if (!!updateAccountLocksBtn) {
-        updateAccountLocksBtn.addEventListener('click', function () {
+        let updateAccountLocksBtn: HTMLInputElement = <HTMLInputElement>document.getElementById('updateAccountLocks');
+        if (!!updateAccountLocksBtn) {
+          updateAccountLocksBtn.addEventListener('click', function () {
 
-          inviteLocks.childNodes.forEach((listItem: HTMLLIElement) => {
-            if (!!listItem.outerHTML) {
-              let lockId: number = +listItem.dataset.lockid;
-              let getAllLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
-              if (listItem.dataset.checked.toLowerCase() == "true") {
-                // if lock is checked
-                let shouldAdd: boolean = true;
+            inviteLocks.childNodes.forEach((listItem: HTMLLIElement) => {
+              if (!!listItem.outerHTML) {
+                let lockId: number = +listItem.dataset.lockid;
+                let getAllLockAccounts: Promise<Array<ILockAccount>> = GetAllLockAccounts();
+                if (listItem.dataset.checked.toLowerCase() == "true") {
+                  // if lock is checked
+                  let shouldAdd:boolean = true;
 
-                getAllLockAccounts.then((allLockAccountsArray) => {
-                  allLockAccountsArray.forEach((lockAccount) => {
-                    if (lockAccount.lockId == lockId && lockAccount.accountId == accountToManageResponse.id) {
-                      // Account already has access to the lock, so ignore
-                      shouldAdd = false;
-                    }
-                  })
-                }).then(() => {
-                  if (shouldAdd) {
-                    // Add the account to the lock
-                    let allRoles: Promise<Array<IRole>> = GetAllRoles();
-                    let roleId: number = 0;
-
-                    allRoles.then((roleResponse) => {
-                      roleResponse.forEach((role) => {
-                        // Find the admin role (accessLevel 10)
-                        if (role.accessLevel == 5) {
-                          roleId = role.id;
-                        }
-                      });
+                  let allRoles: Promise<Array<IRole>> = GetAllRoles();
+                  if (!!allRoles) {
+                    let selectedRole: IRole;
+                    allRoles.then((allRolesResponse) => {
+                      if (!!listOfRoles) {
+                        listOfRoles.childNodes.forEach((listItem: HTMLLIElement) => {
+                          if (!!listItem.outerHTML) {
+                            if (listItem.dataset.checked.toLowerCase() == "true") {
+                              // if role is checked
+                              let accessLevel: number = +listItem.dataset.accesslevel;
+                              allRolesResponse.forEach((role) => {
+                                if (accessLevel == role.accessLevel) {
+                                  selectedRole = role;
+                                }
+                              });
+                            }
+                          }
+                        });
+                      }
                     }).then(() => {
-                      let newLockAccount: ILockAccount = ({ id: 0, accountId: accountToManageResponse.id, roleId: roleId, lockId: lockId });
-                      let addLockAccount = AddLockAccount(newLockAccount);
-                      addLockAccount.then((addLockAccountResponse) => {
-                        if (addLockAccountResponse == 200) {
-                          alert("Brugeren blev tilføjet til låsen");
+                      getAllLockAccounts.then((allLockAccountsArray) => {
+                        allLockAccountsArray.forEach((lockAccount) => {
+                          if (lockAccount.lockId == lockId && lockAccount.accountId == accountToManageResponse.id) {
+                            if (lockAccount.roleId != selectedRole.id) {
+                              // If the lock account role is not the same as the selected role
+
+                              // Check if the logged in user has permission to manage
+                              let hasPermission:boolean = false;
+                              allLockAccountsArray.forEach((lockAccount2) => {
+                                if(lockAccount2.accountId == accountResponse.id && lockAccount2.lockId == lockAccount.lockId && lockAccount2.roleId == 1) {
+                                  hasPermission = true;
+                                }
+                              });
+                              
+                              // Then update it
+                              if(hasPermission) {
+                                lockAccount.roleId = selectedRole.id;
+                                let updateLockAccount = UpdateLockAccount(lockAccount);
+                                updateLockAccount.then((updateLockAccountResponse) => {
+                                  if (updateLockAccountResponse == 200) {
+                                    alert("Brugerens rolle blev ændret");
+                                  }
+                                });
+                              } else {
+                                alert("Du har ikke adgang til at ændre brugeren rolle på låsen");
+                              }
+                            }
+                            // Account already has access to the lock, so ignore
+                            shouldAdd = false;
+                          }
+                        })
+                      }).then(() => {
+                        if (shouldAdd) {
+                          // Add the account to the lock
+                          let roleId: number = 1;
+
+                          roleId = selectedRole.id;
+
+                          let newLockAccount: ILockAccount = ({ id: 0, accountId: accountToManageResponse.id, roleId: roleId, lockId: lockId });
+                          let hasPermission: boolean = false;
+                          getAllLockAccounts.then((allLockAccountsArray) => {
+                            // Check if the logge in user has permission to manage
+                            allLockAccountsArray.forEach((lockAccount) => {
+                              if (lockAccount.accountId == accountResponse.id && lockAccount.lockId == newLockAccount.lockId && lockAccount.roleId == 1) {
+                                hasPermission = true;
+                              }
+                            });
+                          }).then(() => {
+                            // Add the lock account
+                            if(hasPermission) {
+                              let addLockAccount = AddLockAccount(newLockAccount);
+                              addLockAccount.then((addLockAccountResponse) => {
+                                if (addLockAccountResponse == 200) {
+                                  alert("Brugeren blev tilføjet til låsen");
+                                }
+                              });
+                            } else {
+                              alert("Du har ikke adgang til at tilføje brugeren til låsen");
+                            }
+                          });
+
                         }
                       });
-
                     });
                   }
-                });
 
-              } else {
-                // Lock is not checked (so remove, if changed from true)
-                getAllLockAccounts.then((allLockAccountsArray) => {
-                  allLockAccountsArray.forEach((lockAccount) => {
-                    if (lockAccount.lockId == lockId && lockAccount.accountId == accountToManageResponse.id) {
-                      // Account already has access to the lock, so ignore
-                      // Remove the account from the lock
-                      let deleteLockAccount = DeleteLockAccount(lockAccount.id);
-                      deleteLockAccount.then((deleteLockAccountResponse) => {
-                        alert("Brugeren blev fjernet fra låsen");
-                      });
-                    }
-                  })
-                });
+                } else {
+                  // Lock is not checked (so remove, if changed from true)
+                  getAllLockAccounts.then((allLockAccountsArray) => {
+                    allLockAccountsArray.forEach((lockAccount) => {
+                      if (lockAccount.lockId == lockId && lockAccount.accountId == accountToManageResponse.id) {
+                        // Account already has access to the lock, so ignore
+
+                        let hasPermission: boolean = false;
+                        getAllLockAccounts.then((allLockAccountsArray) => {
+                          // Check if the logge in user has permission to manage
+                          allLockAccountsArray.forEach((lockAccount2) => {
+                            if (lockAccount2.accountId == accountResponse.id && lockAccount2.lockId == lockAccount.lockId && lockAccount2.roleId == 1) {
+                              hasPermission = true;
+                            }
+                          });
+                        }).then(() => {
+                          // Remove the account from the lock
+                          if(hasPermission) {
+                            let deleteLockAccount = DeleteLockAccount(lockAccount.id);
+                            deleteLockAccount.then((deleteLockAccountResponse) => {
+                              alert("Brugeren blev fjernet fra låsen");
+                            });
+                          } else {
+                            alert("Du har ikke adgang til at fjerne brugeren fra låsen");
+                          }
+                        });
+                      }
+                    })
+                  });
+                }
               }
-            }
+            });
+
           });
+        }
 
-        });
-      }
-
+      });
     });
   }
 }
